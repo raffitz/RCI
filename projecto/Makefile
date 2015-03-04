@@ -17,4 +17,8 @@ docs:
 
 .PHONY: clean
 clean:
+	touch ddt
+	touch dummy.o
 	rm ddt *.o
+	touch doc/dummy
+	rm -r doc/*
