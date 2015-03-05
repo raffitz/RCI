@@ -10,11 +10,11 @@ módulos do projecto.
 Estrutura com os dados a ser recolhidos pela linha de comandos.
 */
 struct startup_data{
-	/** Porto do servidor TCP */
+	/** Porto do servidor TCP. */
 	int ringport;
-	/** Endereço do servidor de arranque */
+	/** Endereço do servidor de arranque. */
 	unsigned char boot_ip[4];
-	/** Porto do servidor de arranque */
+	/** Porto do servidor de arranque. */
 	int bootport;
 };
 
@@ -22,14 +22,14 @@ struct startup_data{
 Estrutura com as referências necessárias aos vários módulos do projecto.
 */
 struct transversal_data{
-	/** socket UDP */
+	/** Socket UDP. */
 	int u;
-	/** socket TCP */
+	/** Socket TCP. */
 	int t;
-	/** Anel a ser utilizado */
+	/** Anel a ser utilizado. */
 	int ring;
-	/** Parâmetros da linha de comandos */
-	struct startup_data params;
+	/** Parâmetros da linha de comandos. */
+	struct startup_data startup_data;
 };
 
 #endif

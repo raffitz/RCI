@@ -14,7 +14,17 @@ funcionalidades do projecto.
 nos restantes ficheiros-fonte para implementar as funcionalidades necessárias ao
 projecto, como especificadas no enunciado.
 */
-int main(){
+int main(int argc, char**argv){
+	
+	struct transversal_data transversal_data;
+	struct args_parse_options args_parse_options;
+	
+	/* Leitura das opções: */
+	args_parse_options.startup_data = &(transversal_data.startup_data);
+	args_parse_options.argc = &argc;
+	args_parse_options.argv = &argv;
+	parse_options(&args_parse_options);
+	
 	printf("Testing\n");
 	exit(0);
 }

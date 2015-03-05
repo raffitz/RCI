@@ -1,12 +1,12 @@
 CC=gcc
-CFLAGS=-Wall -std=c99
+CFLAGS=-Wall -std=c99 -g
 INCDIR=include
 SRCDIR=src
 OBJECTS=options.o
 
 all: ddt
 
-%.o: $(SRCDIR)/%.c
+%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
 	$(CC) -c -o $@ $< $(CFLAGS) -I$(INCDIR)
 
 ddt: $(SRCDIR)/main.c $(OBJECTS)
