@@ -19,11 +19,13 @@ estrutura de dados transversal aos vários módulos do projecto.
 Função de leitura do endereço e do porto e criação da estrutura de destino.
 Esta função recebe os parâmetros conseguidos via linha de comandos e determina
 qual a estrutura de destino (relativa ao servidor UDP).
+
 A função getaddrinfo() é utilizada em vez da função gethostbyname(), por uma
 questão de preferência pessoal e também pelo facto da função getaddrinfo() estar
 especificada como thread-safe (a função gethostbyname() só é thread-safe em
 algumas implementações). Os detalhes da função getaddrinfo() podem ser
-consultados em RFC 2553.
+consultados em [RFC 2553](https://www.ietf.org/rfc/rfc2553.txt).
+
 Na estrutura comum é alocada memória para a struct sockaddr de destino.
 */
 void getsockaddr(char*node,char*service,struct startup_data *startup_data){
@@ -31,15 +33,19 @@ void getsockaddr(char*node,char*service,struct startup_data *startup_data){
 	struct addrinfo *address;
 	struct addrinfo hint;
 	
-	/* A estrutura de destino é determinada via getaddrinfo() aqui: */
-	hint.ai_family = 0;
+	/* Especificação de alguns dos parâmetros através da hint: */
+	hint.ai_family = 0; /* Não especificar a família deixa o sistema aberto
+		a IPv6, se tal for possível */
 	hint.ai_socktype = SOCK_DGRAM;
-	hint.ai_protocol = 0;
+	hint.ai_protocol = 0; /* Podia repetir-se aqui o protocolo, redundante*/
 	hint.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
 	hint.ai_addrlen = 0;
 	hint.ai_addr = NULL;
 	hint.ai_canonname = NULL;
 	hint.ai_next = NULL;
+	
+	
+	/* A estrutura de destino é determinada via getaddrinfo() aqui: */
 	i = getaddrinfo(node,service,&hint,&address);
 	if(i != 0){
 		printf("Error getting address info: %s\n",gai_strerror(i));
