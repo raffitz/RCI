@@ -1,8 +1,8 @@
 CC=gcc
-CFLAGS=-Wall -std=c99 -g
+CFLAGS=-Wall -std=c99
 INCDIR=include
 SRCDIR=src
-OBJECTS=options.o
+OBJECTS=options.o net_udp.o
 
 all: ddt
 

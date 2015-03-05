@@ -9,8 +9,10 @@ estrutura de dados transversal aos vários módulos do projecto.
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "common.h"
 #include "options.h"
+#include "net_udp.h"
 
 /**
 Função que mostra a mensagem Usage.
@@ -29,14 +31,17 @@ ponteiro para estrutura de maneira a que a função seja compatível com threads
 */
 void* parse_options(struct args_parse_options *params){
 	int i;
-	char gt,gi,gp;
+	unsigned char gt,gi,gp;
+	char hostname[256];
+	char port[16];
 	
 	extern char *optarg;
-	extern int optind,opterr,optopt;
+	extern int opterr;
 	
 	opterr=0;
 	
 	gt = gi = gp = 0;
+	/* Leitura dos parâmetros: */
 	while(1){
 		i = getopt((*(*params).argc),(*(*params).argv),"t:i:p:");
 		if (i=='?'){
@@ -48,21 +53,30 @@ void* parse_options(struct args_parse_options *params){
 		switch(i){
 			case 't':
 				gt++;
+				sscanf(optarg,"%d",
+					&((*(*params).startup_data).ringport));
 				break;
 			case 'i':
 				gi++;
+				strncpy(hostname,optarg,256);
 				break;
 			case 'p':
 				gp++;
+				strncpy(port,optarg,16);
 				break;
 			default:
 				break;
 		}
 	}
 	
+	/* Se algum dos três parâmetros não foi passado, o programa sai. */
 	if(gt==0 || gi==0 || gp==0){
 		usage((*(*params).argv)[0]);
 	}
+	
+	getsockaddr(hostname,port,(*params).startup_data);
+	
+	
 	
 	return NULL;
 }
