@@ -74,7 +74,7 @@ void* parse_options(struct args_parse_options *params){
 		usage((*(*params).argv)[0]);
 	}
 	
-	getsockaddr(hostname,port,(*params).startup_data);
+	getudpdest(hostname,port,(*params).startup_data);
 	
 	
 	

@@ -6,6 +6,6 @@ Cabeçalhos e protótipos associados às funções relacionadas com o protocolo 
 #define RCI_NETUDP
 
 
-void getsockaddr(char*node,char*service,struct startup_data *startup_data);
+void getudpdest(char*node,char*service,struct startup_data *startup_data);
 
 #endif
