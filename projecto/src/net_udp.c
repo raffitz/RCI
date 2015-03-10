@@ -64,6 +64,14 @@ void createsocket_udp(struct transversal_data *transversal_data){
 	}
 	(*transversal_data).u = i;
 	
+	if(connect(i,((*transversal_data).startup_data).destination,
+		((*transversal_data).startup_data).dest_size) < 0){
+		
+		perror("ddt");
+	}
+	
+	
+	
 	if(family == AF_INET){ /* IPv4: */
 		origin_size = sizeof(struct sockaddr_in);
 		origin = malloc(origin_size);
@@ -72,7 +80,7 @@ void createsocket_udp(struct transversal_data *transversal_data){
 			exit(0);
 		}
 		aux4 = (struct sockaddr_in *)origin;
-		address_4 = ntohl((*aux4).sin_addr.s_addr);
+		address_4 = (*aux4).sin_addr.s_addr;
 		sprintf((*transversal_data).ext_addr,"%hhu.%hhu.%hhu.%hhu",
 			((char*) &address_4)[0],((char*) &address_4)[1],
 			((char*) &address_4)[2],((char*) &address_4)[3]);
@@ -86,7 +94,7 @@ void createsocket_udp(struct transversal_data *transversal_data){
 		}
 		aux6 = (struct sockaddr_in6 *)origin;
 		sprintf((*transversal_data).ext_addr,
-"%hhx%hhx:%hhx%hhx:%hhx%hhx:%hhx%hhx:%hhx%hhx:%hhx%hhx:%hhx%hhx:%hhx%hhx",
+"%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx",
 			(*aux6).sin6_addr.s6_addr[0],
 			(*aux6).sin6_addr.s6_addr[1],
 			(*aux6).sin6_addr.s6_addr[2],
