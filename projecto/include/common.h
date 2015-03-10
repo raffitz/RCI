@@ -15,7 +15,7 @@ Estrutura com os dados a ser recolhidos pela linha de comandos.
 */
 struct startup_data{
 	/** Porto do servidor TCP. */
-	int ringport;
+	char ringport[16];
 	/** Família da socket */
 	int family;
 	/** Estrutura de destino para as mensagens UDP. */
@@ -36,6 +36,8 @@ struct transversal_data{
 	int ring;
 	/** Parâmetros da linha de comandos. */
 	struct startup_data startup_data;
+	/** IP externo do servidor. */
+	char ext_addr[40];
 };
 
 #endif

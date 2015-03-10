@@ -9,6 +9,7 @@ funcionalidades do projecto.
 #include <stdio.h>
 #include "common.h"
 #include "options.h"
+#include "net_udp.h"
 
 /** Função principal do programa ddt. Esta função serve-se dos módulos criados
 nos restantes ficheiros-fonte para implementar as funcionalidades necessárias ao
@@ -19,11 +20,20 @@ int main(int argc, char**argv){
 	struct transversal_data transversal_data;
 	struct args_parse_options args_parse_options;
 	
+	/* Inicialização dos valores transversais: */
+	transversal_data.u = -1;
+	transversal_data.t = -1;
+	transversal_data.ring = -1;
+	
 	/* Leitura das opções: */
 	args_parse_options.startup_data = &(transversal_data.startup_data);
 	args_parse_options.argc = &argc;
 	args_parse_options.argv = &argv;
 	parse_options(&args_parse_options);
+	
+	
+	createsocket_udp(&transversal_data);
+	
 	
 	printf("Testing\n");
 	exit(0);

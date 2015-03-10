@@ -53,8 +53,8 @@ void* parse_options(struct args_parse_options *params){
 		switch(i){
 			case 't':
 				gt++;
-				sscanf(optarg,"%d",
-					&((*(*params).startup_data).ringport));
+				strncpy((*(*params).startup_data).ringport,
+					optarg,16);
 				break;
 			case 'i':
 				gi++;
