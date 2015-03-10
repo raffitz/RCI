@@ -26,6 +26,7 @@ int main(int argc, char**argv){
 	transversal_data.t_p = -1;
 	transversal_data.t_s = -1;
 	transversal_data.ring = -1;
+	transversal_data.id = -1;
 	
 	/* Leitura das opções: */
 	args_parse_options.startup_data = &(transversal_data.startup_data);

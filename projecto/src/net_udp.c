@@ -117,4 +117,14 @@ void createsocket_udp(struct transversal_data *transversal_data){
 	printf("External Address: %s\n",(*transversal_data).ext_addr);
 	
 	free(origin);
+	
+#ifdef RCIDEBUG1
+
+	char buf[256];
+
+	sendto(i,"BQRY 5",6,0,((*transversal_data).startup_data).destination,
+		((*transversal_data).startup_data).dest_size);
+	buf[recvfrom(i,buf,256,0,NULL,NULL)] = 0;
+	printf("RCIDEBUG1: UDP Test. Sent BQRY 5 to server.\nServer:%s\n",buf);
+#endif
 }

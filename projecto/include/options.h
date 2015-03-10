@@ -10,7 +10,6 @@ opções de linha de comandos.
 
 /**
 Estrutura com os argumentos para a função \ref parse_options.
-Esta estrutura, 
 */
 struct args_parse_options{
 	/** Ponteiro para o local em memória do contador de argumentos. */

@@ -38,7 +38,7 @@ struct transversal_data{
 	int t_s;
 	/** Anel a ser utilizado. */
 	int ring;
-	/** Identificador actual no nó */
+	/** Identificador actual do nó. */
 	int id;
 	/** Parâmetros da linha de comandos. */
 	struct startup_data startup_data;

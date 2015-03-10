@@ -25,9 +25,10 @@ void usage(char* appname){
 
 /**
 Função responsável pela interpretação dos argumentos passados via linha de
-comandos. Esta função recorre à função getopt() de maneira a obter os diversos
-parâmetros passados via linha de comandos. Os argumentos são passados via
-ponteiro para estrutura de maneira a que a função seja compatível com threads.
+comandos.
+Esta função recorre à função getopt() de maneira a obter os diversos parâmetros
+passados via linha de comandos. Os argumentos são passados via ponteiro para
+estrutura de maneira a que a função seja compatível com threads.
 */
 void* parse_options(struct args_parse_options *params){
 	int i;
@@ -74,6 +75,7 @@ void* parse_options(struct args_parse_options *params){
 		usage((*(*params).argv)[0]);
 	}
 	
+	/* Caso contrário, é determinada a estrutura de destino: */
 	getudpdest(hostname,port,(*params).startup_data);
 	
 	
