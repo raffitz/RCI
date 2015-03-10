@@ -16,7 +16,9 @@ não associadas a nenhum dos protocolos utilizados.
 /**
 Função de leitura de endereços e portos e criação de estruturas de destino.
 
-Esta função recebe um endereço e 
+Esta função recebe um endereço e um porto, bem como a família (que é tanto uma
+entrada como uma saída), o tamanho da estrutura de saída e um ponteiro para a
+estrutura de saída. Caso esse ponteiro seja NULL, a estrutura é alocada.
 
 A função getaddrinfo() é utilizada em vez da função gethostbyname(), por uma
 questão de preferência pessoal e também pelo facto da função getaddrinfo() estar
@@ -32,8 +34,13 @@ void getsockaddr(char *node,char *service,int *family,socklen_t *size,
 	struct addrinfo hint;
 	
 	/* Especificação de alguns dos parâmetros através da hint: */
-	hint.ai_family = 0; /* Não especificar a família deixa o sistema aberto
-		a IPv6, se tal for possível */
+	if((*family)==AF_INET){
+		hint.ai_family = AF_INET;
+	}else if((*family)==AF_INET6){
+		hint.ai_family = AF_INET6;
+	}else{
+		hint.ai_family = 0;
+	}
 	if(protocol == 0){
 		hint.ai_socktype = SOCK_DGRAM; /* UDP */
 	}else{
