@@ -22,7 +22,9 @@ int main(int argc, char**argv){
 	
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
-	transversal_data.t = -1;
+	transversal_data.t_a = -1;
+	transversal_data.t_p = -1;
+	transversal_data.t_s = -1;
 	transversal_data.ring = -1;
 	
 	/* Leitura das opções: */
@@ -32,6 +34,7 @@ int main(int argc, char**argv){
 	parse_options(&args_parse_options);
 	
 	
+	/* Abertura da socket UDP: */
 	createsocket_udp(&transversal_data);
 	
 	

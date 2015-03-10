@@ -6,7 +6,7 @@ OBJECTS=options.o net_common.o net_udp.o
 
 all: ddt
 
-%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
+%.o: $(SRCDIR)/%.c $(INCDIR)/%.h $(INCDIR)/common.h
 	$(CC) -c -o $@ $< $(CFLAGS) -I$(INCDIR)
 
 ddt: $(SRCDIR)/main.c $(OBJECTS)

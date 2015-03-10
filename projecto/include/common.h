@@ -30,10 +30,16 @@ Estrutura com as referências necessárias aos vários módulos do projecto.
 struct transversal_data{
 	/** Socket UDP. */
 	int u;
-	/** Socket TCP. */
-	int t;
+	/** Socket TCP [accept]. */
+	int t_a;
+	/** Socket TCP do predecessor. */
+	int t_p;
+	/** Socket TCP do sucessor. */
+	int t_s;
 	/** Anel a ser utilizado. */
 	int ring;
+	/** Identificador actual no nó */
+	int id;
 	/** Parâmetros da linha de comandos. */
 	struct startup_data startup_data;
 	/** IP externo do servidor. */
