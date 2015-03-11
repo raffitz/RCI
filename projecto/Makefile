@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -std=c99 -g -DRCIDEBUG1
 INCDIR=include
 SRCDIR=src
-OBJECTS=options.o net_common.o net_udp.o
+OBJECTS=options.o net_common.o net_udp.o interface.o
 
 all: ddt
 

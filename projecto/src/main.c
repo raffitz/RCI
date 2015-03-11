@@ -10,6 +10,7 @@ funcionalidades do projecto.
 #include "common.h"
 #include "options.h"
 #include "net_udp.h"
+#include "interface.h"
 
 /** Função principal do programa ddt. Esta função serve-se dos módulos criados
 nos restantes ficheiros-fonte para implementar as funcionalidades necessárias ao
@@ -19,6 +20,7 @@ int main(int argc, char**argv){
 	
 	struct transversal_data transversal_data;
 	struct args_parse_options args_parse_options;
+	int ex=0;
 	
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
@@ -37,7 +39,8 @@ int main(int argc, char**argv){
 	
 	/* Abertura da socket UDP: */
 	createsocket_udp(&transversal_data);
-	
+	/*Cria a interface do utilizador*/
+	ex=interface();	
 	
 	printf("Testing\n");
 	exit(0);
