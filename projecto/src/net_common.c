@@ -67,6 +67,10 @@ void getsockaddr(char *node,char *service,int *family,socklen_t *size,
 	
 	if((*sockaddress)==NULL){
 		(*sockaddress) = malloc((*size));
+		if(*sockaddress == NULL){
+			printf("Out of memory. Terminating.\n");
+			exit(0);
+		}
 	}
 	memcpy((*sockaddress),address[0].ai_addr,(*size));
 	
