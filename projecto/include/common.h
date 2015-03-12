@@ -29,7 +29,7 @@ Estrutura com a informação referente a um par.
 */
 struct peer_data{
 	/** Número do nó pelo qual o par é responsável. */
-	int number;
+	int id;
 	/** Endereço do par. */
 	char node[256];
 	/** Porto do par. */
@@ -54,6 +54,8 @@ struct transversal_data{
 	int ring;
 	/** Identificador actual do nó. */
 	int id;
+	/** Registered Node. */
+	char reg;
 	/** Parâmetros da linha de comandos. */
 	struct startup_data startup_data;
 	/** IP externo do servidor. */
