@@ -25,6 +25,20 @@ struct startup_data{
 };
 
 /**
+Estrutura com a informação referente a um par.
+*/
+struct peer_data{
+	/** Número do nó pelo qual o par é responsável. */
+	int number;
+	/** Endereço do par. */
+	char node[256];
+	/** Porto do par. */
+	char service[16];
+	/** Socket TCP com o par */
+	int socket;
+}
+
+/**
 Estrutura com as referências necessárias aos vários módulos do projecto.
 */
 struct transversal_data{
@@ -32,10 +46,10 @@ struct transversal_data{
 	int u;
 	/** Socket TCP [accept]. */
 	int t_a;
-	/** Socket TCP do predecessor. */
-	int t_p;
-	/** Socket TCP do sucessor. */
-	int t_s;
+	/** Estrutura do predecessor. */
+	struct peer_data peer_pred;
+	/** Estrutura do sucessor. */
+	struct peer_data peer_succ;
 	/** Anel a ser utilizado. */
 	int ring;
 	/** Identificador actual do nó. */
