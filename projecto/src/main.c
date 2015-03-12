@@ -10,6 +10,7 @@ funcionalidades do projecto.
 #include "common.h"
 #include "options.h"
 #include "net_udp.h"
+#include "net_tcp.h"
 #include "interface.h"
 
 /** Função principal do programa ddt. Esta função serve-se dos módulos criados
@@ -24,7 +25,7 @@ int main(int argc, char**argv){
 	
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
-	transversal_data.t_a = -1;
+	transversal_data.t = -1;
 	
 	transversal_data.peer_pred.id = -1;
 	transversal_data.peer_pred.node[0] = 0;
@@ -49,6 +50,10 @@ int main(int argc, char**argv){
 	
 	/* Abertura da socket UDP: */
 	createsocket_udp(&transversal_data);
+	
+	/* Abertura do servidor TCP: */
+	createserver_tcp(&transversal_data);
+	
 	/*Cria a interface do utilizador*/
 	ex=interface();	
 	

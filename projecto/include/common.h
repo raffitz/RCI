@@ -36,7 +36,7 @@ struct peer_data{
 	char service[16];
 	/** Socket TCP com o par */
 	int socket;
-}
+};
 
 /**
 Estrutura com as referências necessárias aos vários módulos do projecto.
@@ -45,7 +45,7 @@ struct transversal_data{
 	/** Socket UDP. */
 	int u;
 	/** Socket TCP [accept]. */
-	int t_a;
+	int t;
 	/** Estrutura do predecessor. */
 	struct peer_data peer_pred;
 	/** Estrutura do sucessor. */
