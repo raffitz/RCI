@@ -25,6 +25,48 @@ void recv_message(char* buffer){
 			printf("\nMensagem incorrecta\n");
 		}
 	}
+	//deve ser new ou connect ou success
+	else if(num_words==4){
+		if(strcmp(message[0], "NEW")==0){
+			int new_pred;
+			if(sscanf(message[1], "%d", &new_pred)==1){
+				if(new_pred>=0 && new_pred<64){
+					//mudar o predecessor para i
+				}else{
+					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
+				}
+			}else{
+				printf("\nMensagem mal formatada!\n");
+			}
+		}
+		else if(strcmp(message[0], "CON")==0){
+			int new_succ;
+			if(sscanf(message[1], "%d", &new_succ)==1){
+				if(new_succ && new_succ<64){
+					//tenho que me conectar com o nó i
+				}else{
+					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
+				}
+			}else{
+				printf("\nMensagem mal formatada!\n");
+			}
+		}
+		else if(strcmp(message[0], "SUCC")==0){
+			int resp_id;
+			if(sscanf(message[1], "%d", &resp_id)==1){
+				if(resp_id>=0 && resp_id<64){
+					//informar o no que quer aderir que encontramos o seu succi
+				}else{
+					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
+				}
+			}else{
+				printf("\nMensagem mal formatada!\n");
+			}
+		}
+		else{
+			printf("\nMensagem incorrecta");
+		}
+	}
 	//deve ser procura QRY
 	else if(num_words==3){
 		int ini_id, procu_id;
@@ -37,35 +79,35 @@ void recv_message(char* buffer){
 					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
 				}
 			}else{
-				printf("\nMensagem mal formatada\n");
+				printf("\nMensagem mal formatada!\n");
 			}
 		}else{
-			printf("\nMensagem incorrecta\n");
+			printf("\nMensagem incorrecta!\n");
 		}
 	}
-	//Deve ser search
+	//Deve ser tentativa de um nó se juntar ao anel
 	else if(num_words==2){
-		int no_proc_id;
+		int procu_id;
 
-		if(strcmp(message[0], "search")==0){
-			if(sscanf(message[1], "%d", &no_proc_id)==1){
-				if(no_proc_id>=0 && no_proc_id<64){
-				//faz search
+		if(strcmp(message[0], "ID")==0){
+			if(sscanf(message[1], "%d", &procu_id)==1){
+				if(procu_id && procu_id){
+				//faz search do no que se procura enviando QRY j i ao succi
 
 				}else{
 					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
 				}
 			}else{
-				printf("\nComando mal formatado. Deverá ser da forma:\n\t[search k] -> O utilizador pretende saber o identificador e a localização do nó responsável pelo identificador k.\n");
+				printf("\nMensagem mal formatada!\n");
 			}
 		}else{
-			printf("\nEscolha um dos comandos acima!\n");
+			printf("\nMensagem incorrecta!\n");
 		}
 	}
-	//deve ser leave ou show ou exit
+	//deve ser para passar a ser nó de arranque
 	else if(num_words==1){
 		if(strcmp(message[0], "BOOT")==0){
-			//muda a variavel que diz se somos no de arranque ou nao
+			//muda a variavel que diz se somos nó de arranque ou nao
 		}
 		else{
 			printf("\nMensagem incorrecta\n");
@@ -73,8 +115,8 @@ void recv_message(char* buffer){
 	}
 	//mensagem esta mal formatada
 	else{
-		printf("\nEscolha um dos comandos acima!\n");
+		printf("\nEstá tudo mal!\n");
 	}
 
-	return
+	return;
 }
