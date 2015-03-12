@@ -25,8 +25,18 @@ int main(int argc, char**argv){
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
 	transversal_data.t_a = -1;
-	transversal_data.t_p = -1;
-	transversal_data.t_s = -1;
+	
+	transversal_data.peer_pred.id = -1;
+	transversal_data.peer_pred.node[0] = 0;
+	transversal_data.peer_pred.service[0] = 0;
+	transversal_data.peer_pred.socket = -1;
+	
+	transversal_data.peer_succ.id = -1;
+	transversal_data.peer_succ.node[0] = 0;
+	transversal_data.peer_succ.service[0] = 0;
+	transversal_data.peer_succ.socket = -1;
+	
+	transversal_data.reg = -1;
 	transversal_data.ring = -1;
 	transversal_data.id = -1;
 	
