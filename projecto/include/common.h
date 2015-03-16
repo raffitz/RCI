@@ -60,6 +60,10 @@ struct transversal_data{
 	struct startup_data startup_data;
 	/** IP externo do servidor. */
 	char ext_addr[40];
+	// flag que indica se sou servidor de arranque ou nao
+	int serv_arranq;
+	//Socket com novo no do anel. So e utilizado se formos no de arranque.
+	int socket_with_new_node;
 };
 
 #endif
