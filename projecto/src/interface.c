@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "common.h"
 
 int interface(){
 	int num_com=0;
@@ -13,7 +14,7 @@ int interface(){
 		printf("\n");
 		fgets(str, 256, stdin);
 		num_com=sscanf(str, "%s %s %s %s %s %s", comands[0], comands[1], comands[2], comands[3], comands[4], comands[5]);
-		
+
 		//deve ser join succi
 		if(num_com==6){
 		//faz join succi
@@ -25,7 +26,7 @@ int interface(){
 				if(sscanf(comands[1], "%d", &anel_id)==1 && sscanf(comands[2], "%d", &no_id)==1){
 					if(no_id>=0 && no_id<64){
 					//faz join
-
+						join_anel(comands[1], comands[2]);
 					}else{
 						printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
 					}
@@ -45,7 +46,14 @@ int interface(){
 				if(sscanf(comands[1], "%d", &no_proc_id)==1){
 					if(no_proc_id>=0 && no_proc_id<64){
 					//faz search
-
+						if(verifica_se_responsavel(comands[1])){
+							//se for ele responsavel entao responde logo ao utilizador
+							printf("\n%s, %s, %s\n", transversal_data.id, transversal_data.ext_addr, transversal_data.startup_data.ringport);
+						}else{
+							//faz search do no que se procura enviando QRY j i ao succi
+							sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
+							write_message_tcp(message_to_send, transversal_data.peer_succi.socket);
+						}
 					}else{
 						printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
 					}

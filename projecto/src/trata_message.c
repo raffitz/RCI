@@ -175,17 +175,6 @@ void write_message_tcp(char * string, int socket){
 	return;
 }
 
-//Faz a pesquisa de um no e recebe a mensagem de resposta
-char* pesquisa_no(char* no_proc){
-	char message_to_send[124];
-	char * message_rcvd;
-
-	sprintf(message_to_send, "QRY %s %s\n", (string)transversal_data.id, no_proc);
-	write_message_tcp(message_to_send, transversal_data.peer_succi.socket);
-	message_rcvd = read_message_tcp(transversal_data.peer_succi.socket);
-
-	return message_rcvd;
-}
 
 void trata_messagem(char* buffer){
 	char message[6][256];
