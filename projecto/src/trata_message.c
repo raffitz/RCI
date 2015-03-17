@@ -192,14 +192,14 @@ void trata_messagem(char* buffer){
 
 		case 1://RSP
 			//se ini_id for o mesmo que o present no entao responde. Se nao passa a mensagem.
-			if(atoi(message[1])==transversal_data.id){
+			if(atoi(message[1])==transversal_data->id){
 				//se foi ele que fez a pesquisa entao responde ao utilizador ou responde ao no que quer aderir
 				printf("\n%s, %s, %s\n", message[3], message[4], message[5]);
 				sprintf(message_to_send, "SUCC %s %s %s\n", message[3], message[4], message[5]);
-				write_message_tcp(buffer, transversal_data.socket_with_new_node);
+				write_message_tcp(buffer, transversal_data->socket_with_new_node);
 			}else{
 				//se nao foi ele que fez a pesquisa passa a resposta a predi
-				write_message_tcp(buffer, transversal_data.peer_pred.socket);
+				write_message_tcp(buffer, transversal_data->peer_pred.socket);
 			}
 			break;
 
@@ -215,13 +215,13 @@ void trata_messagem(char* buffer){
 
 		case 4://SUCC
 			//informar o no que quer aderir que encontramos o seu succi
-			if(atoi(message[1])==transversal_data.id){
+			if(atoi(message[1])==transversal_data->id){
 				//temos que escolher outro id
 			}else{
 				//liga-se por TCP a L (message[2] e message[3])
 				connect_tcp(message[2], message[3]);
-				sprintf(message_to_send, "NEW %d %s %s\n", transversal_data.id, transversal_data.ext_addr, transversal_data.startup_data.ringport);
-				write_message_tcp(message_to_send, transversal_data.peer_succi.socket);
+				sprintf(message_to_send, "NEW %d %s %s\n", transversal_data->id, transversal_data->ext_addr, transversal_data->startup_data.ringport);
+				write_message_tcp(message_to_send, transversal_data->peer_succi.socket);
 			}
 			break;
 
@@ -229,11 +229,11 @@ void trata_messagem(char* buffer){
 			//Vai ver se ele e responsavel pelo no. Depois responde adequadamente.
 			if(verifica_se_responsavel(message[2])){
 			//Se for responsavel responde
-				sprintf(message_to_send, "RSP %s %s %s %s %s\n", message[1], message[2], transversal_data.id, transversal_data.ext_addr, transversal_data.startup_data.ringport);
-				write_message_tcp(message_to_send, transversal_data.peer_pred.socket);
+				sprintf(message_to_send, "RSP %s %s %s %s %s\n", message[1], message[2], transversal_data->id, transversal_data->ext_addr, transversal_data->startup_data.ringport);
+				write_message_tcp(message_to_send, transversal_data->peer_pred.socket);
 			}else{
 			//Se nao for responsavel passa a mensagem a succi
-				write_message_tcp(buffer, transversal_data.peer_succi.socket);
+				write_message_tcp(buffer, transversal_data->peer_succi.socket);
 			}
 			break;
 
@@ -241,23 +241,23 @@ void trata_messagem(char* buffer){
 			if(verifica_se_responsavel(message[1])){
 				//se for ele responsavel entao responde logo ao novo no com a resposta adequada
 				sprintf(message_to_send, "SUCC %s %s %s\n", message[3], message[4], message[5]);
-				write_message_tcp(buffer, transversal_data.socket_with_new_node);
+				write_message_tcp(buffer, transversal_data->socket_with_new_node);
 			}else{
 				//faz search do no que se procura enviando QRY j i ao succi
-				sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
-				write_message_tcp(message_to_send, transversal_data.peer_succi.socket);
+				sprintf(message_to_send, "QRY %d %s\n",transversal_data->id, message[1]);
+				write_message_tcp(message_to_send, transversal_data->peer_succi.socket);
 			}
 			break;
 
 		case 7://BOOT
 			//muda a variavel que diz se somos no de arranque ou nao
-			transversal_data.serv_arranq = 1;
+			transversal_data->serv_arranq = 1;
 			break;
 
 		case 8://BRSP
 			//conecta-se por TCP ao no de arranque e envia-lhe a mensagem ID i
 			connect_tcp(message[3], message[4]);
-			sprintf(message_to_send, "ID %d", transversal_data.id);
+			sprintf(message_to_send, "ID %d", transversal_data->id);
 			break;
 	}
 	return;

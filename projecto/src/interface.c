@@ -3,11 +3,13 @@
 #include <string.h>
 #include "common.h"
 #include "ring.h"
+#include "trata_message.h"
 
 int interface(struct transversal_data *transversal_data){
 	int num_com=0;
 	char comands[6][256];
 	char str[256];
+	char str2[256];
 
 	printf("Escolha uma das instruções para executar:\n\n\t[join x i] -> O utilizador pretende que o nó se junte ao anel x tomando i como identificador nesse anel. O nó só pode pertencer a um anel de cada vez.\n\n\t[join x i succi succi.IP succi.TCP] -> O utilizador pretende que o nó se junte ao anel x tomando i como identificador nesse anel e succi como o identificador do seu sucessor, localizado em (succi.IP succi.TCP).\n\n\t[leave] -> O utilizador pretende que o nó abandone o anel a que pertence.\n\n\t[show] -> Mostra ao utilizador o número do anel, o identificador do nó nesse anel, bem como os identificadores do seu sucessor e do seu predecessor.\n\n\t[search k] -> O utilizador pretende saber o identificador e a localização do nó responsável pelo identificador k.\n\n\t[exit] -> O utilizador fecha a aplicação.\n");
 
@@ -69,7 +71,23 @@ int interface(struct transversal_data *transversal_data){
 		else if(num_com==1){
 			if(strcmp(comands[0], "leave")==0){
 			//faz leave
-				if(transversal_data.peer_succi.socket==-1 && transversal_data.peer_pred.socket==-1)
+				if(transversal_data->peer_succi.socket==-1 && transversal_data->peer_pred.socket==-1){
+					sprintf(str2, "UNR %d", transversal_data->ring);
+					sendto((*transversal_data).u,str2,strlen(str2),0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
+					recvfrom((*transversal_data).u,str2,256,0,NULL,NULL);
+
+				}else if(transversal_data->serv_arranq){
+					sprintf(str2, "REG %d %d %s %s", transversal_data->ring, transversal_data->peer_succi.id, transversal_data->peer_succi.node, transversal_data->peer_succi.service);
+					sendto((*transversal_data).u,str2,strlen(str2),0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
+					recvfrom((*transversal_data).u,str2,256,0,NULL,NULL);
+					sprintf(str2, "BOOT");
+					write_message_tcp(str2, transversal_data->peer_succ.socket);
+					close(transversal_data->peer_succ.socket);
+					close(transversal_data->peer_pred.socket);
+
+				}else{
+
+				}
 			}else if(strcmp(comands[0], "show")==0){
 			//faz show
 
