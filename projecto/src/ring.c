@@ -21,8 +21,11 @@ int join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 	sendto((*transversal_data).u,buffer,bufsize,0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
 	
 	
-	buffer[recvfrom((*transversal_data).u,buffer,256,0,NULL,NULL)] = 0;
+	buffer[recvfrom((*transversal_data).u,buffer,256,0,NULL,NULL)] = '\0';
+
+#ifdef RCIDEBUG1
 	printf("%s\n",buffer);
+#endif
 	
 	return 0;
 }
