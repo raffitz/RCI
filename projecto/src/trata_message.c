@@ -202,6 +202,10 @@ void trata_messagem(char* buffer){
 	char message[6][256];
 	int num_words, option;
 	char message_to_send[124];
+	int eu_id, predi_id;
+
+	eu_id=transversal_data->id;
+	predi_id=transversal_data->peer_pred.id;
 
 	num_words = sscanf(buffer, "%s %s %s %s %s %s", message[0],message[1],message[2],message[3],message[4],message[5]);
 	message[num_words][strlen(message[num_words])-1] = '\0';
@@ -248,7 +252,7 @@ void trata_messagem(char* buffer){
 
 		case 5://QRY
 			//Vai ver se ele e responsavel pelo no. Depois responde adequadamente.
-			if(verifica_se_responsavel(message[2])){
+			if(verifica_se_responsavel(message[2], eu_id, predi_id)){
 			//Se for responsavel responde
 				sprintf(message_to_send, "RSP %s %s %s %s %s\n", message[1], message[2], transversal_data->id, transversal_data->ext_addr, transversal_data->startup_data.ringport);
 				write_message_tcp(message_to_send, transversal_data->peer_pred.socket);
@@ -259,7 +263,7 @@ void trata_messagem(char* buffer){
 			break;
 
 		case 6://ID
-			if(verifica_se_responsavel(message[1])){
+			if(verifica_se_responsavel(message[1], eu_id, predi_id)){
 				//se for ele responsavel entao responde logo ao novo no com a resposta adequada
 				sprintf(message_to_send, "SUCC %s %s %s\n", message[3], message[4], message[5]);
 				write_message_tcp(buffer, transversal_data->socket_with_new_node);
