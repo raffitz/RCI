@@ -37,6 +37,8 @@ void createserver_tcp(struct transversal_data *transversal_data){
 	/* Especificação do endereço para o bind() : */
 	size = sizeof(struct sockaddr_in6);
 	address.sin6_family = AF_INET6;
+	
+	// /!\ CENAS - atenção à endianness do porto!
 	sscanf((*transversal_data).startup_data.ringport,"%d", (int*)
 		&(address.sin6_port));
 	address.sin6_flowinfo = 0;
