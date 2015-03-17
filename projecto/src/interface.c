@@ -13,11 +13,7 @@ int interface(){
 		printf("\n");
 		fgets(str, 256, stdin);
 		num_com=sscanf(str, "%s %s %s %s %s %s", comands[0], comands[1], comands[2], comands[3], comands[4], comands[5]);
-
-		/*for(int i=0; i<num_com; i++){
-			printf("%s\n", comands[i]);
-		}*/
-
+		
 		//deve ser join succi
 		if(num_com==6){
 		//faz join succi
