@@ -56,7 +56,7 @@ int main(int argc, char**argv){
 	createserver_tcp(&transversal_data);
 
 	/*Cria a interface do utilizador*/
-	ex=interface();
+	ex=interface(&transversal_data);
 
 	printf("Testing\n");
 	exit(0);
