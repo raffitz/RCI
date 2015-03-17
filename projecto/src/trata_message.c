@@ -3,6 +3,27 @@
 #include <string.h>
 #include "common.h"
 #include "trata_message.h"
+#include "math.h"
+
+int dist(int ele, int eu){
+	if (eu>=ele){
+		return (eu-ele);
+	}else{
+		return(64+eu-ele);
+	}
+
+}
+
+int verifica_se_responsavel(char * c, eu_id, predi_id){
+	int id;
+	sscanf(c, "%d", &id);
+	if(dist(id, eu_id)<dist(id, predi_id)){
+		return 1;
+	}else{
+		return 0;
+	}
+
+}
 
 
 /*Verificar se a mensagem recebida é válida e identifica qual é:
