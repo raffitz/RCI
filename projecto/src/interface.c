@@ -26,7 +26,7 @@ int interface(){
 				if(sscanf(comands[1], "%d", &anel_id)==1 && sscanf(comands[2], "%d", &no_id)==1){
 					if(no_id>=0 && no_id<64){
 					//faz join
-						join_anel(comands[1], comands[2]);
+						join_ring(comands[1], comands[2]);
 					}else{
 						printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
 					}
@@ -68,7 +68,7 @@ int interface(){
 		else if(num_com==1){
 			if(strcmp(comands[0], "leave")==0){
 			//faz leave
-
+				if(transversal_data.peer_succi.socket==-1 && transversal_data.peer_pred.socket==-1)
 			}else if(strcmp(comands[0], "show")==0){
 			//faz show
 
