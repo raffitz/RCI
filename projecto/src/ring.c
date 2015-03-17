@@ -8,19 +8,24 @@
 
 #define RCI_MSGSIZE 256
 
-int join_anel(char* ring, char* num, struct transversal_data *transversal_data)
+int join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 {
 	char buffer[RCI_MSGSIZE];
 	int bufsize;
-	int rcvsize;
 	sprintf(buffer,"BQRY %s",ring);
-	bufsize = strlen(buffer) - 1;
+	bufsize = strlen(buffer);
 	
+#ifdef RCIDEBUG1
+	printf("\n sending message: <%s>\n",buffer);
+#endif
 	sendto((*transversal_data).u,buffer,bufsize,0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
 	
-	rcvsize = recvfrom((*transversal_data).u,buffer,bufsize,0,NULL,NULL);
-	buffer[rcvsize] = 0;
+	
+	buffer[recvfrom((*transversal_data).u,buffer,256,0,NULL,NULL)] = '\0';
+
+#ifdef RCIDEBUG1
 	printf("%s\n",buffer);
+#endif
 	
 	return 0;
 }

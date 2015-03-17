@@ -21,7 +21,6 @@ int main(int argc, char**argv){
 
 	struct transversal_data transversal_data;
 	struct args_parse_options args_parse_options;
-	int ex=0;
 
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
@@ -56,8 +55,13 @@ int main(int argc, char**argv){
 	createserver_tcp(&transversal_data);
 
 	/*Cria a interface do utilizador*/
-	ex=interface(&transversal_data);
-
+	print_ui();
+	while(1){
+		
+		if (interface(&transversal_data)) break;
+	}
+#ifdef RCIDEBUG1
 	printf("Testing\n");
+#endif
 	exit(0);
 }
