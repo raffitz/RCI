@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
+#include "trata_message.h"
 
 
 /*Verificar se a mensagem recebida é válida e identifica qual é:
