@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "common.h"
 #include "ring.h"
 #include "trata_message.h"
@@ -56,7 +57,7 @@ int interface(struct transversal_data *transversal_data){
 					}else{
 						//faz search do no que se procura enviando QRY j i ao succi
 						sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
-						write_message_tcp(message_to_send, transversal_data.peer_succi.socket);
+						write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 					}*/
 				}else{
 					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
@@ -64,20 +65,16 @@ int interface(struct transversal_data *transversal_data){
 			}else{
 				printf("\nComando mal formatado. Deverá ser da forma:\n\t[search k] -> O utilizador pretende saber o identificador e a localização do nó responsável pelo identificador k.\n");
 			}
-		}else{
-			printf("\nEscolha um dos comandos acima!\n");
-		}
-		//deve ser leave ou show ou exit
-		else if(num_com==1){
+		}else if(num_com==1){
 			if(strcmp(comands[0], "leave")==0){
 			//faz leave
-				if(transversal_data->peer_succi.socket==-1 && transversal_data->peer_pred.socket==-1){
+				if(transversal_data->peer_succ.socket==-1 && transversal_data->peer_pred.socket==-1){
 					sprintf(str2, "UNR %d", transversal_data->ring);
 					sendto((*transversal_data).u,str2,strlen(str2),0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
 					recvfrom((*transversal_data).u,str2,256,0,NULL,NULL);
 
 				}else if(transversal_data->serv_arranq){
-					sprintf(str2, "REG %d %d %s %s", transversal_data->ring, transversal_data->peer_succi.id, transversal_data->peer_succi.node, transversal_data->peer_succi.service);
+					sprintf(str2, "REG %d %d %s %s", transversal_data->ring, transversal_data->peer_succ.id, transversal_data->peer_succ.node, transversal_data->peer_succ.service);
 					sendto((*transversal_data).u,str2,strlen(str2),0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
 					recvfrom((*transversal_data).u,str2,256,0,NULL,NULL);
 					sprintf(str2, "BOOT");
@@ -90,7 +87,7 @@ int interface(struct transversal_data *transversal_data){
 				}
 			}else if(strcmp(comands[0], "show")==0){
 			//faz show
-
+			}
 		}else if(strcmp(comands[0], "exit")==0){
 		//faz exit
 			return (1);
