@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,7 +80,7 @@ int interface(struct transversal_data *transversal_data){
 					sendto((*transversal_data).u,str2,strlen(str2),0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
 					recvfrom((*transversal_data).u,str2,256,0,NULL,NULL);
 					sprintf(str2, "BOOT");
-					write_message_tcp(str2, transversal_data->peer_succ.socket);
+					dprintf(transversal_data->peer_succ.socket,"%s",str2);
 					close(transversal_data->peer_succ.socket);
 					close(transversal_data->peer_pred.socket);
 
