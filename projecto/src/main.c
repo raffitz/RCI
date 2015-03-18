@@ -56,9 +56,14 @@ int main(int argc, char**argv){
 
 	/*Cria a interface do utilizador*/
 	print_ui();
+	printf(">");
 	while(1){
 		
-		if (interface(&transversal_data)) break;
+		if (interface(&transversal_data)){
+			break;
+		}else{
+			printf(">");
+		}
 	}
 #ifdef RCIDEBUG1
 	printf("Testing\n");

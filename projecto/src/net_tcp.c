@@ -8,6 +8,7 @@ protocolo TCP.
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "common.h"
+#include "net_common.h"
 #include "net_tcp.h"
 
 #define RCI_BACKLOG 16
@@ -61,4 +62,34 @@ void createserver_tcp(struct transversal_data *transversal_data){
 	(*transversal_data).t = i;
 	
 	return;
+}
+
+/** Função de abertura de uma sessão TCP com outro nó.
+
+Esta função cria uma socket e liga-a directamente ao nó, retornando então essa
+mesma socket.
+*/
+int connect_tcp(char* node, char* service){
+	int i;
+	int family = 0;
+	
+	struct sockaddr* address = NULL;
+	socklen_t addr_length;
+	
+	/* Abertura da socket: */
+	i = socket(AF_INET6,SOCK_STREAM,0);
+	
+	if(i<0){
+		perror("ddt");
+		exit(0);
+	}
+	
+	getsockaddr(node,service,&family,&addr_length,&address,1);
+	
+	if(connect(i,address,addr_length)<0){
+		perror("ddt");
+		exit(0);
+	}
+	
+	return i;
 }
