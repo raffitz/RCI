@@ -1,3 +1,8 @@
+/** \file interface.c
+Interface com o utilizador. Este ficheiro contém as funções relacionadas com
+a interface com o utilizador.
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,11 +12,54 @@
 #include "ring.h"
 #include "trata_message.h"
 
-
-void print_ui(){
-		printf("Escolha uma das instruções para executar:\n\n\t[join x i] -> O utilizador pretende que o nó se junte ao anel x tomando i como identificador nesse anel. O nó só pode pertencer a um anel de cada vez.\n\n\t[join x i succi succi.IP succi.TCP] -> O utilizador pretende que o nó se junte ao anel x tomando i como identificador nesse anel e succi como o identificador do seu sucessor, localizado em (succi.IP succi.TCP).\n\n\t[leave] -> O utilizador pretende que o nó abandone o anel a que pertence.\n\n\t[show] -> Mostra ao utilizador o número do anel, o identificador do nó nesse anel, bem como os identificadores do seu sucessor e do seu predecessor.\n\n\t[search k] -> O utilizador pretende saber o identificador e a localização do nó responsável pelo identificador k.\n\n\t[exit] -> O utilizador fecha a aplicação.\n");
+/** Função de impressão de formato do comando <join> (curto). */
+void print_join_s(){
+	printf("\t[join x i] -> O utilizador pretende que o nó se junte ao anel"
+	" x tomando i como identificador nesse anel. O nó só pode pertencer a"
+	" um anel de cada vez.\n");
 }
 
+/** Função de impressão de formato do comando <join> (longo). */
+void print_join_l(){
+	printf("\t[join x i succi succi.IP succi.TCP] -> O utilizador pretende"
+	" que o nó se junte ao anel x tomando i como identificador nesse anel e"
+	" succi como o identificador do seu sucessor, localizado em"
+	" (succi.IP succi.TCP).\n");
+}
+
+/** Função de impressão de formato do comando <search>. */
+void print_search(){
+	printf("\t[search k] -> O utilizador pretende saber o identificador e a"
+	"localização do nó responsável pelo identificador k.\n");
+}
+
+/** Função de impressão dos comandos disponíveis. Esta função mostra os comandos
+disponíveis para o utilizador. Os comandos sem parâmetros são hardcoded,
+enquanto que os comandos com parâmetros estão descritos em funções individuais
+de maneira a facilitar as mensagens de erro de formato.
+*/
+void print_ui(){
+	printf("Escolha uma das instruções para executar:\n");
+	
+	print_join_s();
+	print_join_l();
+	
+	printf("\t[leave] -> O utilizador pretende que o nó abandone o anel a"
+	" que pertence.\n");
+	
+	print_search();
+	
+	printf("\t[show] -> Mostra ao utilizador o número do anel, o"
+	" identificador do nó nesse anel, bem como os identificadores do seu"
+	" sucessor e do seu predecessor.\n"
+	"\t[help] -> A lista de comandos disponíveis é mostrada novamente.\n"
+	"\t[exit] -> O utilizador fecha a aplicação.\n");
+}
+
+/** Função de análise dos comandos inseridos. Após detecção de dados para ser
+lidos via stdin, esta função processa esses dados de maneira a executar o
+comando inserido pelo utilizador.
+*/
 int interface(struct transversal_data *transversal_data){
 	int num_com=0;
 	char comands[6][256];
@@ -19,7 +67,8 @@ int interface(struct transversal_data *transversal_data){
 	char str2[256];
 
 	fgets(str, 256, stdin);
-	num_com=sscanf(str, "%s %s %s %s %s %s", comands[0], comands[1], comands[2], comands[3], comands[4], comands[5]);
+	num_com=sscanf(str, "%s %s %s %s %s %s", comands[0], comands[1],
+		comands[2], comands[3], comands[4], comands[5]);
 
 	//deve ser join succi
 	if(num_com==6){
@@ -29,18 +78,24 @@ int interface(struct transversal_data *transversal_data){
 	else if(num_com==3){
 		int anel_id, no_id;
 		if(strcmp(comands[0], "join")==0){
-			if(sscanf(comands[1], "%d", &anel_id)==1 && sscanf(comands[2], "%d", &no_id)==1){
+			if(sscanf(comands[1], "%d", &anel_id)==1 && 
+					sscanf(comands[2], "%d", &no_id)==1){
 				if(no_id>=0 && no_id<64){
 				//faz join
-					join_ring(comands[1], comands[2],transversal_data);
+					join_ring(comands[1],comands[2],
+						transversal_data);
 				}else{
-					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
+					printf("Identificador do nó fora do"
+					" alcance. Deve estar entre 0 e 63.\n");
 				}
 			}else{
-				printf("\nComando mal formatado. Deverá ser da forma:\n\t[search k] -> O utilizador pretende saber o identificador e a localização do nó responsável pelo identificador k.\n");
+				printf("Comando mal formatado."
+					" Deve ser da forma:\n");
+				print_join_s();
+				print_join_l();
 			}
 		}else{
-			printf("\nEscolha um dos comandos acima!\n");
+			printf("Escolha um dos comandos acima!\n");
 		}
 
 	}
@@ -62,10 +117,13 @@ int interface(struct transversal_data *transversal_data){
 						write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 					}*/
 				}else{
-					printf("\nIdentificador do nó fora de range. Deve estar entre 0 e 63 inclusivé\n");
+					printf("Identificador do nó fora do"
+					" alcance. Deve estar entre 0 e 63\n");
 				}
 			}else{
-				printf("\nComando mal formatado. Deverá ser da forma:\n\t[search k] -> O utilizador pretende saber o identificador e a localização do nó responsável pelo identificador k.\n");
+				printf("Comando mal formatado."
+					" Deverá ser da forma:\n");
+				print_search();
 			}
 		}else if(num_com==1){
 			if(strcmp(comands[0], "leave")==0){
