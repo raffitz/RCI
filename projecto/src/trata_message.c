@@ -15,6 +15,7 @@ int dist(int ele, int eu){
 }
 
 int verifica_se_responsavel(char * c, eu_id, predi_id){
+
 	int id;
 	sscanf(c, "%d", &id);
 	if(dist(id, eu_id)<dist(id, predi_id)){
@@ -22,14 +23,11 @@ int verifica_se_responsavel(char * c, eu_id, predi_id){
 	}else{
 		return 0;
 	}
-
 }
-
 
 /*Verificar se a mensagem recebida é válida e identifica qual é:
 	0-erro / 1-RSP / 2-NEW / 3-CON / 4-SUCC / 5-QRY / 6-ID / 7-BOOT / 8-BRSP
 */
-
 int check_message(char** message, int num_words){
 	//deve ser RSP
 	if(num_words==6){
@@ -197,8 +195,16 @@ void write_message_tcp(char * string, int socket){
 	return;
 }
 
+void preenche_predi_info(struct transversal_data * transversal_data, char* id, char* ip, char* porto){
+	sscanf(id, "%d", &transversal_data->peer_pred.id);
+	strcpy(transversal_data->peer_pred.node, ip);
+	strcpy(transversal_data->peer_pred.service, porto);
 
-void trata_messagem(char* buffer){
+	return;
+}
+
+
+void trata_messagem(char* buffer, struct transversal_data * transversal_data){
 	char message[6][256];
 	int num_words, option;
 	char message_to_send[124];
@@ -230,7 +236,7 @@ void trata_messagem(char* buffer){
 
 		case 2://NEW
 			//mudar o predecessor para i
-			preenche_predi_info(message[0], message[1], message[2], message[3]);
+			preenche_predi_info(transversal_data,  message[1], message[2], message[3]);
 			break;
 
 		case 3://CON
