@@ -115,16 +115,16 @@ int interface(struct transversal_data *transversal_data){
 			if(sscanf(comands[1], "%d", &no_proc_id)==1){
 				if(no_proc_id>=0 && no_proc_id<64){
 				//faz search
-/*
-if(verifica_se_responsavel(comands[1])){
-//se for ele responsavel entao responde logo ao utilizador
-printf("\n%s, %s, %s\n", transversal_data.id, transversal_data.ext_addr,
-transversal_data.startup_data.ringport);
-}else{
-//faz search do no que se procura enviando QRY j i ao succi
-sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
-write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
-}*/
+				/*
+				if(verifica_se_responsavel(comands[1])){
+				//se for ele responsavel entao responde logo ao utilizador
+				printf("\n%s, %s, %s\n", transversal_data.id, transversal_data.ext_addr,
+				transversal_data.startup_data.ringport);
+				}else{
+				//faz search do no que se procura enviando QRY j i ao succi
+				sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
+				write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
+				}*/
 				}else{
 					printf("Identificador do nó fora do"
 					" alcance. Deve estar entre 0 e 63.\n");
@@ -137,7 +137,8 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 		}else{
 			print_error();
 		}
-	}else if(num_com==1){
+	}
+	else if(num_com==1){
 		if(strcmp(comands[0], "leave")==0){
 			/* Sai do anel: */
 			if(transversal_data->peer_succ.socket==-1 &&
