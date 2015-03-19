@@ -45,7 +45,7 @@ void read_message_tcp(char* buffer, int fd){
 		if(nread==-1){
 			printf("Erro ao ler do file descriptor\n");
 			return;
-		}else if((nread==0)) || (buffer[num_char]=='\n'){
+		}else if((nread==0) || (buffer[num_char]=='\n'){
 			buffer[num_char+1]='\0';
 			break;
 		}

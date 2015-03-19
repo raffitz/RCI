@@ -18,8 +18,8 @@ estrutura de dados transversal aos vários módulos do projecto.
 Função que mostra a mensagem Usage.
 */
 void usage(char* appname){
-	printf("Usage: %s %s %s %s\n",appname,"[-t <ringport>]","[-i bootIP]",
-		"[-p bootport]");
+	printf("Usage: %s %s %s %s %s %s\n",appname,"[-t <ringport>]",
+		"[-i bootIP]","[-p bootport]","(-a)","(-h)");
 	exit(0);
 }
 
@@ -30,7 +30,9 @@ Esta função recorre à função getopt() de maneira a obter os diversos parâm
 passados via linha de comandos. Os argumentos são passados via ponteiro para
 estrutura de maneira a que a função seja compatível com threads.
 */
-void* parse_options(struct args_parse_options *params){
+void* parse_options(int* argc, char*** argv,
+	struct transversal_data *transversal_data)
+{
 	int i;
 	unsigned char gt,gi,gp;
 	char hostname[256];
@@ -42,11 +44,15 @@ void* parse_options(struct args_parse_options *params){
 	opterr=0;
 	
 	gt = gi = gp = 0;
+	
+	/* Por defeito a família é IPv4 */
+	((*transversal_data).startup_data).family = AF_INET;
+	
 	/* Leitura dos parâmetros: */
 	while(1){
-		i = getopt((*(*params).argc),(*(*params).argv),"t:i:p:");
+		i = getopt((*argc),(*argv),"t:i:p:ah");
 		if (i=='?'){
-			usage((*(*params).argv)[0]);
+			usage((*argv)[0]);
 		}
 		if (i==-1){
 			break;
@@ -54,8 +60,8 @@ void* parse_options(struct args_parse_options *params){
 		switch(i){
 			case 't':
 				gt++;
-				strncpy((*(*params).startup_data).ringport,
-					optarg,16);
+				strncpy((*transversal_data).
+					startup_data.ringport,optarg,16);
 				break;
 			case 'i':
 				gi++;
@@ -65,6 +71,14 @@ void* parse_options(struct args_parse_options *params){
 				gp++;
 				strncpy(port,optarg,16);
 				break;
+			case 'h':
+				usage((*argv)[0]);
+				break;
+			case 'a':
+				/* Aceitamos IPv6 */
+				(*transversal_data).startup_data.family =
+					AF_INET6;
+				break;
 			default:
 				break;
 		}
@@ -72,12 +86,13 @@ void* parse_options(struct args_parse_options *params){
 	
 	/* Se algum dos três parâmetros não foi passado, o programa sai. */
 	if(gt==0 || gi==0 || gp==0){
-		usage((*(*params).argv)[0]);
+		usage((*argv)[0]);
 	}
 	
 	/* Caso contrário, é determinada a estrutura de destino: */
-	getudpdest(hostname,port,(*params).startup_data);
+	getudpdest(hostname,port,&(*transversal_data).startup_data);
 	
+	/* Aproveita a socket UDP para determinar o endereço externo: */
 	
 	
 	return NULL;

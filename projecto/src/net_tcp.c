@@ -23,10 +23,15 @@ void createserver_tcp(struct transversal_data *transversal_data){
 	
 	int i;
 	
+	
 	struct sockaddr_in6 address;
 	socklen_t size;
 	
+	
+	
 	/* Abertura da socket: */
+	/* A socket de chegada é sempre AF_INET6, que suporta tanto IPv4 como
+	IPv6 */
 	i = socket(AF_INET6,SOCK_STREAM,0);
 	
 	if(i<0){
@@ -76,15 +81,15 @@ int connect_tcp(char* node, char* service){
 	struct sockaddr* address = NULL;
 	socklen_t addr_length;
 	
+	getsockaddr(node,service,&family,&addr_length,&address,1);
+	
 	/* Abertura da socket: */
-	i = socket(AF_INET6,SOCK_STREAM,0);
+	i = socket(family,SOCK_STREAM,0);
 	
 	if(i<0){
 		perror("ddt");
 		exit(0);
 	}
-	
-	getsockaddr(node,service,&family,&addr_length,&address,1);
 	
 	if(connect(i,address,addr_length)<0){
 		perror("ddt");

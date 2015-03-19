@@ -8,21 +8,10 @@ opções de linha de comandos.
 
 #include "common.h"
 
-/**
-Estrutura com os argumentos para a função \ref parse_options.
-*/
-struct args_parse_options{
-	/** Ponteiro para o local em memória do contador de argumentos. */
-	int* argc;
-	/** Ponteiro para o local em memória dos argumentos. */
-	char*** argv;
-	/** Ponteiro para uma das estruturas transversais ao projecto. */
-	struct startup_data *startup_data;
-};
 
 
-
-void* parse_options(struct args_parse_options *params);
+void* parse_options(int* argc, char*** argv,
+	struct transversal_data *transversal_data);
 
 
 

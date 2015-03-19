@@ -20,7 +20,6 @@ projecto, como especificadas no enunciado.
 int main(int argc, char**argv){
 
 	struct transversal_data transversal_data;
-	struct args_parse_options args_parse_options;
 
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
@@ -42,10 +41,7 @@ int main(int argc, char**argv){
 	transversal_data.serv_arranq = 0;
 
 	/* Leitura das opções: */
-	args_parse_options.startup_data = &(transversal_data.startup_data);
-	args_parse_options.argc = &argc;
-	args_parse_options.argv = &argv;
-	parse_options(&args_parse_options);
+	parse_options(&argc, &argv, &transversal_data);
 
 
 	/* Abertura da socket UDP: */
