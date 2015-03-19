@@ -127,7 +127,7 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 }*/
 				}else{
 					printf("Identificador do nó fora do"
-					" alcance. Deve estar entre 0 e 63\n");
+					" alcance. Deve estar entre 0 e 63.\n");
 				}
 			}else{
 				printf("Comando mal formatado."
