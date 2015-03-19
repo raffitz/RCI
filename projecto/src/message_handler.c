@@ -33,15 +33,37 @@ int verifica_se_responsavel(char * c, int eu_id, int predi_id){
 	}
 }
 
+/** Função que lê dum file descriptor (socket) uma mensagem*/
+void read_message_tcp(char* buffer, int fd){
+	int flag = 0;
+	int nread;
+	int num_char = 0;
+
+//so le um char de cada vez para ir sempre verificando quando encontra o '\n'
+	while(flag==0){
+		nread=read(fd, buffer, 1);
+		if(nread==-1){
+			printf("Erro ao ler do file descriptor\n");
+			return;
+		}else if((nread==0)) || (buffer[num_char]=='\n'){
+			buffer[num_char+1]='\0';
+			break;
+		}
+		num_char++;
+		buffer++;
+	}
+	return;
+}
+
 /** Verifica se a mensagem recebida é válida e identifica-a. A identificação
 é feita através do valor devolvido pela função, que pode ser um dos seguintes:
 	0-erro / 1-RSP / 2-NEW / 3-CON / 4-SUCC / 5-QRY / 6-ID / 7-BOOT / 8-BRSP
 */
 int check_message(char** message, int num_words){
-	
+
 	int ini_id, procu_id, resp_id;
 	int anel_id, no_arr_id;
-	
+
 	/* Deve ser RSP: */
 	if(num_words==6){
 		if(strcmp(message[0], "RSP")==0){
@@ -66,7 +88,7 @@ int check_message(char** message, int num_words){
 			return(0);
 		}
 	}
-	/* Deve ser o servidor de arranque a responder que o anel pedido não 
+	/* Deve ser o servidor de arranque a responder que o anel pedido não
 	está vazio com BRSP: */
 	if(num_words==5){
 		if(strcmp(message[0], "BRSP")==0){
@@ -216,10 +238,10 @@ void preenche_predi_info(struct transversal_data * transversal_data, char* id,
 }
 
 /** Função que preenche a estrutura de informação do par predecessor. */
-void trata_messagem(char* buffer, struct transversal_data * transversal_data){
+void trata_mensagem(char* buffer, struct transversal_data * transversal_data){
 	char message[6][256];
 	int num_words, option;
-	char message_to_send[124];
+	char message_to_send[128];
 	int eu_id, predi_id;
 
 	eu_id=transversal_data->id;
@@ -288,7 +310,7 @@ void trata_messagem(char* buffer, struct transversal_data * transversal_data){
 		case 5:/* QRY */
 			/* Verifica se ele e responsavel pelo no.
 			Depois responde adequadamente. */
-			
+
 			if(verifica_se_responsavel(message[2],eu_id,predi_id)){
 			/* Se for responsavel responde: */
 				sprintf(message_to_send, "RSP %s %s %s %s %s\n",
@@ -336,10 +358,8 @@ void trata_messagem(char* buffer, struct transversal_data * transversal_data){
 			// /!\ connect_tcp(message[3], message[4]);
 			/* TODO Falta guardar o FD */
 			sprintf(message_to_send, "ID %d", transversal_data->id);
-			
+
 			break;
 	}
 	return;
 }
-
-
