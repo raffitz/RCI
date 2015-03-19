@@ -40,15 +40,15 @@ de maneira a facilitar as mensagens de erro de formato.
 */
 void print_ui(){
 	printf("Escolha uma das instruções para executar:\n");
-	
+
 	print_join_s();
 	print_join_l();
-	
+
 	printf("\t[leave] -> O utilizador pretende que o nó abandone o anel a"
 	" que pertence.\n");
-	
+
 	print_search();
-	
+
 	printf("\t[show] -> Mostra ao utilizador o número do anel, o"
 	" identificador do nó nesse anel, bem como os identificadores do seu"
 	" sucessor e do seu predecessor.\n"
@@ -78,7 +78,7 @@ int interface(struct transversal_data *transversal_data){
 	num_com=sscanf(str, "%s %s %s %s %s %s", comands[0], comands[1],
 		comands[2], comands[3], comands[4], comands[5]);
 
-	
+
 	if(num_com==6){
 	//faz join succi
 	}
@@ -86,7 +86,7 @@ int interface(struct transversal_data *transversal_data){
 	else if(num_com==3){
 		int anel_id, no_id;
 		if(strcmp(comands[0], "join")==0){
-			if(sscanf(comands[1], "%d", &anel_id)==1 && 
+			if(sscanf(comands[1], "%d", &anel_id)==1 &&
 			sscanf(comands[2], "%d", &no_id)==1){
 				if(no_id>=0 && no_id<64){
 				//faz join
@@ -134,6 +134,8 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 					" Deverá ser da forma:\n");
 				print_search();
 			}
+		}else{
+			print_error();
 		}
 	}else if(num_com==1){
 		if(strcmp(comands[0], "leave")==0){
@@ -167,17 +169,19 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 				close(transversal_data->peer_succ.socket);
 				close(transversal_data->peer_pred.socket);
 			}else{
-			
+				print_error();
 			}
 		}else if(strcmp(comands[0], "show")==0){
 			/* Mostra os dados do anel: */
-			
+
 		}else if(strcmp(comands[0], "exit")==0){
 			/* Sai do programa: */
 			return (1);
 		}else if(strcmp(comands[0], "help")==0){
 			/* Mostra de novo os comandos disponíveis: */
 			print_ui();
+		}else{
+			print_error();
 		}
 	}else{
 		print_error();

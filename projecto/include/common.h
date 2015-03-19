@@ -8,7 +8,7 @@ módulos do projecto.
 
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netinet/ip.h>
+//#include <netinet/ip.h>
 
 /**
 Estrutura com os dados a ser recolhidos pela linha de comandos.
