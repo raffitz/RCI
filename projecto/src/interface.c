@@ -10,7 +10,7 @@ a interface com o utilizador.
 #include <unistd.h>
 #include "common.h"
 #include "ring.h"
-#include "trata_message.h"
+#include "message_handler.h"
 
 /** Função de impressão de formato do comando <join> (curto). */
 void print_join_s(){
