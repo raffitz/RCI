@@ -13,6 +13,7 @@ funcionalidades do projecto.
 #include "net_tcp.h"
 #include "interface.h"
 #include "message_handler.h"
+#include "fd_list.h"
 
 #define STDIN 0
 
@@ -25,6 +26,7 @@ int main(int argc, char**argv){
 	struct transversal_data transversal_data;
 	int counter, max_fd;
 	fd_set fds;
+	char buffer[256];
 
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
@@ -43,6 +45,7 @@ int main(int argc, char**argv){
 	transversal_data.ring = -1;
 	transversal_data.id = -1;
 	transversal_data.serv_arranq = 0;
+	transversal_data.primeiro = NULL;
 
 	/* Leitura das opções: */
 	parse_options(&argc, &argv, &transversal_data);
@@ -73,15 +76,12 @@ int main(int argc, char**argv){
 			exit(1);
 		}
 
-		if(FD_ISSET(STDIN, &fds)){
-			if (interface(&transversal_data)){
-				break;
-			}else{
-				printf(">");
-			}
-		}
 		if(FD_ISSET(transversal_data.t ,&fds)){
-			//alguem esta-se a liagr a nos (select)
+			//alguem esta-se a ligar a nos (select)
+			int new_fd;
+			//fazer accept e conectar-se
+			read_message_tcp(buffer, new_fd.fd);
+			trata_mensagem(buffer, &transversal_data, new_fd);
 		}
 		if(transversal_data.peer_pred.socket>=0){
 			if(FD_ISSET(transversal_data.peer_pred.socket ,&fds)){
@@ -91,6 +91,13 @@ int main(int argc, char**argv){
 		if(transversal_data.peer_succ.socket>=0){
 			if(FD_ISSET(transversal_data.peer_succ.socket ,&fds)){
 				//sucessor mandou uma mensagem
+			}
+		}
+		if(FD_ISSET(STDIN, &fds)){
+			if (interface(&transversal_data)){
+				break;
+			}else{
+				printf(">");
 			}
 		}
 	}

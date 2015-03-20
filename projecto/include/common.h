@@ -62,6 +62,8 @@ struct transversal_data{
 	int serv_arranq;
 	//Socket com novo no do anel. So e utilizado se formos no de arranque.
 	int socket_with_new_node;
+	//Ponteiro para o primeiro da lista de queries
+	connect_fd * primeiro;
 };
 
 #endif

@@ -21,15 +21,19 @@ int dist(int ele, int eu){
 
 }
 
-/** Função de verificação da responsabilidade de um nó. */
+/** Função de verificação da responsabilidade de um nó. 1-> responsavel / 0->nao responsavel*/
 int verifica_se_responsavel(char * c, int eu_id, int predi_id){
 
 	int id;
-	sscanf(c, "%d", &id);
-	if(dist(id, eu_id)<dist(id, predi_id)){
-		return 1;
+	if(predi_id>=0){
+		sscanf(c, "%d", &id);
+		if(dist(id, eu_id)<dist(id, predi_id)){
+			return 1;
+		}else{
+			return 0;
+		}
 	}else{
-		return 0;
+		return 1;
 	}
 }
 
@@ -51,6 +55,22 @@ void read_message_tcp(char* buffer, int fd){
 		}
 		num_char++;
 		buffer++;
+	}
+	return;
+}
+
+void write_message_tcp(char * buffer, int fd){
+	int nleft=strlen(buffer);
+	int nwritten;
+	if(fd!=-1){
+		while(nleft>0){
+			nwritten=write(fd,buffer,nleft);
+			if(nwritten<=0){
+				//error
+			}
+			nleft-=nwritten;
+			ptr+=nwritten;
+		}
 	}
 	return;
 }
@@ -228,17 +248,18 @@ int check_message(char** message, int num_words){
 
 /** Função que preenche a estrutura de informação do par predecessor. */
 void preenche_predi_info(struct transversal_data * transversal_data, char* id,
-	char* ip, char* porto)
+	char* ip, char* porto, int new_fd)
 {
 	sscanf(id, "%d", &transversal_data->peer_pred.id);
 	strcpy(transversal_data->peer_pred.node, ip);
 	strcpy(transversal_data->peer_pred.service, porto);
+	transversal_data->peer_pred.socket=new_fd;
 
 	return;
 }
 
 /** Função que preenche a estrutura de informação do par predecessor. */
-void trata_mensagem(char* buffer, struct transversal_data * transversal_data){
+void trata_mensagem(char* buffer, struct transversal_data * transversal_data, int new_fd){
 	char message[6][256];
 	int num_words, option;
 	char message_to_send[128];
@@ -276,8 +297,19 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data){
 
 		case 2:/* NEW */
 			/* Mudar o predecessor para i */
-			preenche_predi_info(transversal_data,  message[1],
-				message[2], message[3]);
+			if(transversal_data->peer_pred.fd==-1){
+				preenche_predi_info(transversal_data,  message[1],
+					message[2], message[3], new_fd);
+				sscanf(message[1], "%d", &transversal_data->peer_succ.id);
+				strcpy(transversal_data->peer_succ, message[2]);
+				strcpy(transversal_data->peer_succ.service, message[3]);
+				transversal_data->peer_succ.socket=new_fd;
+			}else{
+				sprintf(message_to_send, "CON %s %s %s\n",
+					message[1], message[2], message[3]);
+				preenche_predi_info(transversal_data,  message[1],
+					message[2], message[3], new_fd);
+			}
 			break;
 
 		case 3:/* CON */
@@ -329,17 +361,18 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data){
 			if(verifica_se_responsavel(message[1],eu_id,predi_id)){
 				/* Se for ele responsavel entao responde logo
 				ao novo no com a resposta adequada: */
-				sprintf(message_to_send, "SUCC %s %s %s\n",
-					message[3], message[4], message[5]);
-				dprintf(transversal_data->socket_with_new_node,
-					"%s",message_to_send);
+				sprintf(message_to_send, "SUCC %d %s %s\n",
+					transversal_data->id, transversal_data->ext_addr, transversal_data->startup_data.ringport);
+				write_message_tcp(message_to_send, fd);
 			}else{
 				/* Faz search do no que se procura enviando
 				QRY j i ao succ */
 				sprintf(message_to_send, "QRY %d %s\n",
 					transversal_data->id, message[1]);
-				dprintf(transversal_data->peer_succ.socket,
-					"%s",message_to_send);
+					write_message_tcp(message_to_send, transversal_data->peer_succ.socket);
+					connect_fd con_fd;
+					con_fd.fd=new_fd;
+					transversal_data.primeiro = add_fd(&con_fd, transversal_data.primeiro);
 			}
 			break;
 
