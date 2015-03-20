@@ -27,13 +27,13 @@ int main(int argc, char**argv){
 	int counter, max_fd;
 	fd_set fds;
 	char buffer[256];
-	
+
 	/* Variáveis para o accept: */
 	struct sockaddr_storage address;
 	socklen_t length;
 	char caddr[40];
 	char cport[16];
-	
+
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
 	transversal_data.t = -1;
@@ -71,31 +71,34 @@ int main(int argc, char**argv){
 	printf(">");
 
 
+	//inicializa lista de fd's
 	FD_ZERO(&fds);
 	FD_SET(STDIN, &fds);
 	max_fd=STDIN;
 
-	
+
 
 	while(1){
-
+		/*aguarda por um dos fd's para ser activado. Ou o accept, ou o stdin, ou o socket do predecessor
+		ou o socket do sucessor*/
 		counter = select(max_fd+1, &fds, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
 		if(counter <= 0){
 			exit(1);
 		}
-
+		/*Alguem quer fazer ligacao TCP connosco. Ou somos o no de arranque e quer se juntar
+		ao anel ou ele vai passar a ser o nosso predecessor*/
 		if(FD_ISSET(transversal_data.t ,&fds)){
 			//alguem esta-se a ligar a nos (select)
 			int new_fd;
 			//fazer accept e conectar-se
-			
+
 			length = sizeof(struct sockaddr_storage);
-			
+
 			new_fd = accept(transversal_data.t,
 				(struct sockaddr*)&address,&length);
-			
+
 			getIP((struct sockaddr*) &address,length,caddr,cport);
-			
+
 			read_message_tcp(buffer, new_fd);
 #ifdef RCIDEBUG1
 			printf("RCIDEBUG1: <%s : %s> says %s\n",caddr,cport,
