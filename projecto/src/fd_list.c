@@ -1,9 +1,6 @@
-typedef struct connect_fd {
-  char id;
-  int fd;
-  struct connect_fd * next;
-} connect_fd;
-
+#include "fd_list.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 connect_fd * add_fd(connect_fd * new_fd, connect_fd * primeiro){
   connect_fd * aux;
@@ -25,10 +22,12 @@ connect_fd * add_fd(connect_fd * new_fd, connect_fd * primeiro){
 connect_fd * search_fd(char* id, connect_fd * primeiro, int * socket){
   connect_fd * aux1, *aux2;
 
+  aux1=primeiro;
+  aux2=primeiro;
+
   if (primeiro == NULL){
     return NULL;
   }else{
-    aux1=primeiro;
     while(aux1->id!=id[0]){
       aux2=aux1;
       aux1=aux1->next;
@@ -43,5 +42,14 @@ connect_fd * search_fd(char* id, connect_fd * primeiro, int * socket){
 
 
 connect_fd * remove_fd(connect_fd * rmv_fd, connect_fd * primeiro){
-
+  connect_fd * aux;
+  if(rmv_fd!=primeiro){
+    aux=rmv_fd->next->next;
+    free(rmv_fd->next);
+    rmv_fd->next=aux;
+  }else{
+    primeiro=rmv_fd->next;
+    free(rmv_fd->next);
+  }
+  return primeiro;
 }
