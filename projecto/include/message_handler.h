@@ -15,5 +15,6 @@ void preenche_predi_info(struct transversal_data * transversal_data, char* id,
 int dist(int ele, int eu);
 int verifica_se_responsavel(char * c, int eu_id, int predi_id);
 void read_message_tcp(char* buffer, int fd);
+void write_message(char * buffer, int fd);
 
 #endif

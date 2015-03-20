@@ -59,7 +59,7 @@ void read_message_tcp(char* buffer, int fd){
 	return;
 }
 
-void write_message_tcp(char * buffer, int fd){
+void write_message(char * buffer, int fd){
 	int nleft=strlen(buffer);
 	int nwritten;
 	if(fd!=-1){
@@ -275,18 +275,24 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 
 	switch (option){
 		case 1:/* RSP */
-			/* Se ini_id for o mesmo que o nó actual então responde.
+			/* Se message[1] (no que fez pesquisa) for o mesmo que o nó actual então responde.
 			Se não, passa a mensagem. */
 			if(atoi(message[1])==transversal_data->id){
 				/* Se a pesquisa foi iniciada pelo próprio,
 				então a resposta é dada ao utilizador ou ao nó
-				que deseja aderir. */
-				printf("\n%s, %s, %s\n", message[3], message[4],
+				que deseja aderir.*/
+				connect_fd * aux;
+				int fd_aux;
+				aux=search_fd(message[2], transversal_data->primeiro, &fd_aux);
+				if(fd_aux==0){
+					printf("\n%s, %s, %s\n", message[3], message[4],
 					message[5]);
-				sprintf(message_to_send, "SUCC %s %s %s\n",
+				}else{
+					sprintf(message_to_send, "SUCC %s %s %s\n",
 					message[3], message[4], message[5]);
-				dprintf(transversal_data->socket_with_new_node,
-					"%s",buffer);
+					write_message(message_to_send, fd_aux);
+				}
+				transversal_data.primeiro=remove_fd(aux, transversal_data.primeiro);
 			}else{
 				/* Se a mensagem não foi iniciada pelo próprio,
 				retransmite a mensagem para predi. */
@@ -348,12 +354,10 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 					transversal_data->ext_addr,
 					transversal_data->
 						startup_data.ringport);
-				dprintf(transversal_data->peer_pred.socket,
-					"%s",message_to_send);
+				write_message(message_to_send, transversal_data->peer_pred.socket);
 			}else{
 			/*Se nao for responsavel passa a mensagem a succ */
-				dprintf(transversal_data->peer_succ.socket,
-					buffer);
+				write_message(message_to_send, transversal_data->peer_succ.socket);
 			}
 			break;
 
@@ -363,13 +367,13 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 				ao novo no com a resposta adequada: */
 				sprintf(message_to_send, "SUCC %d %s %s\n",
 					transversal_data->id, transversal_data->ext_addr, transversal_data->startup_data.ringport);
-				write_message_tcp(message_to_send, fd);
+				write_message(message_to_send, fd);
 			}else{
 				/* Faz search do no que se procura enviando
 				QRY j i ao succ */
 				sprintf(message_to_send, "QRY %d %s\n",
 					transversal_data->id, message[1]);
-					write_message_tcp(message_to_send, transversal_data->peer_succ.socket);
+					write_message(message_to_send, transversal_data->peer_succ.socket);
 					connect_fd con_fd;
 					con_fd.fd=new_fd;
 					transversal_data.primeiro = add_fd(&con_fd, transversal_data.primeiro);
