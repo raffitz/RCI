@@ -31,7 +31,7 @@ int join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 	
 	sscanf(ring,"%d",&(transversal_data->ring));
 	sscanf(num,"%d",&(transversal_data->id));
-	transversal_data->reg = 1;
+	transversal_data->serv_arranq = 1;
 	
 	return 0;
 }

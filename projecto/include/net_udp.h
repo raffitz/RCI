@@ -10,4 +10,6 @@ void getudpdest(char*node,char*service,struct startup_data *startup_data);
 
 void createsocket_udp(struct transversal_data *transversal_data);
 
+void probe_my_IP(struct transversal_data *transversal_data);
+
 #endif

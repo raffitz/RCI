@@ -54,8 +54,6 @@ struct transversal_data{
 	int ring;
 	/** Identificador actual do nó. */
 	int id;
-	/** Registered Node. */
-	char reg;
 	/** Parâmetros da linha de comandos. */
 	struct startup_data startup_data;
 	/** IP externo do servidor. */

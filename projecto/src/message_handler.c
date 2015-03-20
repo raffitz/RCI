@@ -253,9 +253,6 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data){
 	option = check_message((char**)message, num_words);
 
 	switch (option){
-		case 0:/* Erro */
-			break;
-
 		case 1:/* RSP */
 			/* Se ini_id for o mesmo que o nó actual então responde.
 			Se não, passa a mensagem. */
@@ -359,6 +356,8 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data){
 			/* TODO Falta guardar o FD */
 			sprintf(message_to_send, "ID %d", transversal_data->id);
 
+			break;
+		default:/* Erro */
 			break;
 	}
 	return;

@@ -157,7 +157,7 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 		case 4: /* Exit */
 		case 5: /* Leave */
 			/* Sai do anel: */
-			if(code != 4 && transversal_data->ring == -1){
+			if(transversal_data->ring == -1){
 				printf("Não há anel do qual sair.\n");
 			}else if(transversal_data->peer_succ.socket==-1 &&
 			transversal_data->peer_pred.socket==-1){

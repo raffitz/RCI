@@ -35,7 +35,6 @@ int main(int argc, char**argv){
 	transversal_data.peer_succ.service[0] = 0;
 	transversal_data.peer_succ.socket = -1;
 
-	transversal_data.reg = -1;
 	transversal_data.ring = -1;
 	transversal_data.id = -1;
 	transversal_data.serv_arranq = 0;
@@ -46,6 +45,9 @@ int main(int argc, char**argv){
 
 	/* Abertura da socket UDP: */
 	createsocket_udp(&transversal_data);
+	
+	/* Determinação do IP externo (via UDP): */
+	probe_my_IP(&transversal_data);
 
 	/* Abertura do servidor TCP: */
 	createserver_tcp(&transversal_data);

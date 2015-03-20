@@ -83,3 +83,45 @@ void getsockaddr(char *node,char *service,int *family,socklen_t *size,
 	/* Libertação da lista com os endereços: */
 	freeaddrinfo(address);
 }
+
+
+
+void getIP(struct sockaddr* me, socklen_t mysize,char*dest)
+{
+	struct sockaddr_in *aux4;
+	struct sockaddr_in6 *aux6;
+	uint32_t address_4;
+	
+	if(me->sa_family == AF_INET){
+		aux4 = (struct sockaddr_in*) me;
+		address_4 = (*aux4).sin_addr.s_addr;
+		sprintf(dest,"%hhu.%hhu.%hhu.%hhu",
+			((char*) &address_4)[0],((char*) &address_4)[1],
+			((char*) &address_4)[2],((char*) &address_4)[3]);
+	}else if(me->sa_family == AF_INET6){
+		aux6 = (struct sockaddr_in6*) me;
+		sprintf(dest,"%02hhx%02hhx:"
+			"%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx:"
+			"%02hhx%02hhx:%02hhx%02hhx:%02hhx%02hhx",
+			(*aux6).sin6_addr.s6_addr[0],
+			(*aux6).sin6_addr.s6_addr[1],
+			(*aux6).sin6_addr.s6_addr[2],
+			(*aux6).sin6_addr.s6_addr[3],
+			(*aux6).sin6_addr.s6_addr[4],
+			(*aux6).sin6_addr.s6_addr[5],
+			(*aux6).sin6_addr.s6_addr[6],
+			(*aux6).sin6_addr.s6_addr[7],
+			(*aux6).sin6_addr.s6_addr[8],
+			(*aux6).sin6_addr.s6_addr[9],
+			(*aux6).sin6_addr.s6_addr[10],
+			(*aux6).sin6_addr.s6_addr[11],
+			(*aux6).sin6_addr.s6_addr[12],
+			(*aux6).sin6_addr.s6_addr[13],
+			(*aux6).sin6_addr.s6_addr[14],
+			(*aux6).sin6_addr.s6_addr[15]);
+		
+	}else{
+		printf("Parece-me que anda aqui magia negra...\n");
+		exit(0);
+	}
+}

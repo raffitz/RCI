@@ -8,5 +8,7 @@ associadas a nenhum protocolo em específico.
 
 void getsockaddr(char *node,char *service,int *family,socklen_t *size,
 	struct sockaddr **sockaddress,int protocol);
+	
+void getIP(struct sockaddr *me, socklen_t mysize,char*dest);
 
 #endif
