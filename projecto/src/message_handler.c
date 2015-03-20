@@ -8,6 +8,8 @@ funções de tratamento de mensagens recebidas.
 #include <string.h>
 #include <math.h>
 #include "common.h"
+#include <unistd.h>
+#include "net_tcp.h"
 
 #define RCI_MAXNR 64
 
@@ -49,7 +51,7 @@ void read_message_tcp(char* buffer, int fd){
 		if(nread==-1){
 			printf("Erro ao ler do file descriptor\n");
 			return;
-		}else if((nread==0) || (buffer[num_char]=='\n'){
+		}else if((nread==0) || (buffer[num_char]=='\n')){
 			buffer[num_char+1]='\0';
 			break;
 		}
@@ -69,7 +71,7 @@ void write_message(char * buffer, int fd){
 				//error
 			}
 			nleft-=nwritten;
-			ptr+=nwritten;
+			buffer+=nwritten;
 		}
 	}
 	return;
@@ -113,7 +115,7 @@ int check_message(char** message, int num_words){
 	if(num_words==5){
 		if(strcmp(message[0], "BRSP")==0){
 			if(sscanf(message[1], "%d", &anel_id)==1 &&
-			sscanf(message[2], "%d", no_arr_id)){
+			sscanf(message[2], "%d", &no_arr_id)){
 				if(no_arr_id>=0 && no_arr_id<64){
 					return(8);
 				}else{
@@ -292,7 +294,7 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 					message[3], message[4], message[5]);
 					write_message(message_to_send, fd_aux);
 				}
-				transversal_data.primeiro=remove_fd(aux, transversal_data.primeiro);
+				transversal_data->primeiro=remove_fd(aux, transversal_data->primeiro);
 			}else{
 				/* Se a mensagem não foi iniciada pelo próprio,
 				retransmite a mensagem para predi. */
@@ -303,11 +305,11 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 
 		case 2:/* NEW */
 			/* Mudar o predecessor para i */
-			if(transversal_data->peer_pred.fd==-1){
+			if(transversal_data->peer_pred.socket==-1){
 				preenche_predi_info(transversal_data,  message[1],
 					message[2], message[3], new_fd);
 				sscanf(message[1], "%d", &transversal_data->peer_succ.id);
-				strcpy(transversal_data->peer_succ, message[2]);
+				strcpy(transversal_data->peer_succ.node, message[2]);
 				strcpy(transversal_data->peer_succ.service, message[3]);
 				transversal_data->peer_succ.socket=new_fd;
 			}else{
@@ -348,7 +350,7 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 
 			if(verifica_se_responsavel(message[2],eu_id,predi_id)){
 			/* Se for responsavel responde: */
-				sprintf(message_to_send, "RSP %s %s %s %s %s\n",
+				sprintf(message_to_send, "RSP %s %s %d %s %s\n",
 					message[1], message[2],
 					transversal_data->id,
 					transversal_data->ext_addr,
@@ -367,7 +369,7 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 				ao novo no com a resposta adequada: */
 				sprintf(message_to_send, "SUCC %d %s %s\n",
 					transversal_data->id, transversal_data->ext_addr, transversal_data->startup_data.ringport);
-				write_message(message_to_send, fd);
+				write_message(message_to_send, new_fd);
 			}else{
 				/* Faz search do no que se procura enviando
 				QRY j i ao succ */
@@ -376,7 +378,7 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 					write_message(message_to_send, transversal_data->peer_succ.socket);
 					connect_fd con_fd;
 					con_fd.fd=new_fd;
-					transversal_data.primeiro = add_fd(&con_fd, transversal_data.primeiro);
+					transversal_data->primeiro = add_fd(&con_fd, transversal_data->primeiro);
 			}
 			break;
 
