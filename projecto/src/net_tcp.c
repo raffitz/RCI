@@ -47,7 +47,13 @@ void createserver_tcp(struct transversal_data *transversal_data){
 	sscanf((*transversal_data).startup_data.ringport,"%u",&port);
 	
 	/* Especificação do endereço para o bind() : */
-	if(family == AF_INET6){
+	if(family == AF_INET){
+		size = sizeof(struct sockaddr_in);
+		address = (struct sockaddr*) &address4;
+		address4.sin_family = AF_INET;
+		address4.sin_port = htonl(port);
+		address4.sin_addr.s_addr = INADDR_ANY;
+	}else{
 		size = sizeof(struct sockaddr_in6);
 		address = (struct sockaddr*) &address6;
 		address6.sin6_family = AF_INET6;
@@ -55,15 +61,9 @@ void createserver_tcp(struct transversal_data *transversal_data){
 		address6.sin6_flowinfo = 0;
 		address6.sin6_scope_id = 0;
 		address6.sin6_addr = in6addr_any;
-	}else{
-		size = sizeof(struct sockaddr_in);
-		address = (struct sockaddr*) &address4;
-		address4.sin_family = AF_INET;
-		address4.sin_port = htonl(port);
-		address4.sin_addr.s_addr = INADDR_ANY;
 	}
 	/* Bind da socket aos endereços a máquina. */
-	if(bind(i,(struct sockaddr*)&address,size)<0){
+	if(bind(i,(struct sockaddr*)address,size)<0){
 		perror("ddt:bind");
 		exit(0);
 	}
