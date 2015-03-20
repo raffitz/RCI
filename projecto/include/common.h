@@ -8,6 +8,7 @@ módulos do projecto.
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "fd_list.h"
 //#include <netinet/ip.h>
 
 /**

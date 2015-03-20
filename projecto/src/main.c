@@ -13,7 +13,6 @@ funcionalidades do projecto.
 #include "net_tcp.h"
 #include "interface.h"
 #include "message_handler.h"
-#include "fd_list.h"
 
 #define STDIN 0
 
@@ -53,7 +52,7 @@ int main(int argc, char**argv){
 
 	/* Abertura da socket UDP: */
 	createsocket_udp(&transversal_data);
-	
+
 	/* Determinação do IP externo (via UDP): */
 	probe_my_IP(&transversal_data);
 
@@ -80,7 +79,7 @@ int main(int argc, char**argv){
 			//alguem esta-se a ligar a nos (select)
 			int new_fd;
 			//fazer accept e conectar-se
-			read_message_tcp(buffer, new_fd.fd);
+			read_message_tcp(buffer, new_fd);
 			trata_mensagem(buffer, &transversal_data, new_fd);
 		}
 		if(transversal_data.peer_pred.socket>=0){
