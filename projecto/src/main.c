@@ -9,6 +9,7 @@ funcionalidades do projecto.
 #include <stdio.h>
 #include "common.h"
 #include "options.h"
+#include "net_common.h"
 #include "net_udp.h"
 #include "net_tcp.h"
 #include "interface.h"
@@ -26,7 +27,13 @@ int main(int argc, char**argv){
 	int counter, max_fd;
 	fd_set fds;
 	char buffer[256];
-
+	
+	/* Variáveis para o accept: */
+	struct sockaddr_storage address;
+	socklen_t length;
+	char caddr[40];
+	char cport[16];
+	
 	/* Inicialização dos valores transversais: */
 	transversal_data.u = -1;
 	transversal_data.t = -1;
@@ -79,7 +86,19 @@ int main(int argc, char**argv){
 			//alguem esta-se a ligar a nos (select)
 			int new_fd;
 			//fazer accept e conectar-se
+			
+			length = sizeof(struct sockaddr_storage);
+			
+			new_fd = accept(transversal_data.t,
+				(struct sockaddr*)&address,&length);
+			
+			getIP((struct sockaddr*) &address,length,caddr,cport);
+			
 			read_message_tcp(buffer, new_fd);
+#ifdef RCIDEBUG1
+			printf("RCIDEBUG1: <%s : %s> says %s\n",caddr,cport,
+				buffer);
+#endif
 			trata_mensagem(buffer, &transversal_data, new_fd);
 		}
 		if(transversal_data.peer_pred.socket>=0){

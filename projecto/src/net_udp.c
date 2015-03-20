@@ -102,7 +102,7 @@ void probe_my_IP(struct transversal_data *transversal_data){
 	}
 	
 	
-	getIP((struct sockaddr*) &me,mysize,(*transversal_data).ext_addr);
+	getIP((struct sockaddr*) &me,mysize,(*transversal_data).ext_addr,NULL);
 
 #ifdef RCIDEBUG1
 	printf("RCIDEBUG1: My IP: %s\n",(*transversal_data).ext_addr);
