@@ -14,7 +14,7 @@ connect_fd * add_fd(connect_fd * new_fd, connect_fd * primeiro){
       aux=aux->next;
     }
     aux->next=new_fd;
-    new_fd->next=NULL
+    new_fd->next=NULL;
   }
   return primeiro;
 }
