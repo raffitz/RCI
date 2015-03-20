@@ -5,6 +5,7 @@ protocolo TCP.
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "common.h"
@@ -22,38 +23,48 @@ deve ser feito a posteriori, de maneira a não bloquear a execução do programa
 void createserver_tcp(struct transversal_data *transversal_data){
 	
 	int i;
+	int family;
+	uint32_t port;
 	
+	struct sockaddr* address;
 	
-	struct sockaddr_in6 address;
+	struct sockaddr_in6 address6;
+	struct sockaddr_in address4;
 	socklen_t size;
 	
 	
+	family = transversal_data->startup_data.family;
 	
 	/* Abertura da socket: */
-	/* A socket de chegada é sempre AF_INET6, que suporta tanto IPv4 como
-	IPv6 */
-	i = socket(AF_INET6,SOCK_STREAM,0);
+	i = socket(family,SOCK_STREAM,0);
 	
 	if(i<0){
-		perror("ddt");
+		perror("ddt:socket");
 		exit(0);
 	}
 	
 	
+	sscanf((*transversal_data).startup_data.ringport,"%u",&port);
+	
 	/* Especificação do endereço para o bind() : */
-	size = sizeof(struct sockaddr_in6);
-	address.sin6_family = AF_INET6;
-	
-	// /!\ CENAS - atenção à endianness do porto!
-	sscanf((*transversal_data).startup_data.ringport,"%d", (int*)
-		&(address.sin6_port));
-	address.sin6_flowinfo = 0;
-	address.sin6_scope_id = 0;
-	address.sin6_addr = in6addr_any;
-	
+	if(family == AF_INET6){
+		size = sizeof(struct sockaddr_in6);
+		address = (struct sockaddr*) &address6;
+		address6.sin6_family = AF_INET6;
+		address6.sin6_port = htonl(port);
+		address6.sin6_flowinfo = 0;
+		address6.sin6_scope_id = 0;
+		address6.sin6_addr = in6addr_any;
+	}else{
+		size = sizeof(struct sockaddr_in);
+		address = (struct sockaddr*) &address4;
+		address4.sin_family = AF_INET;
+		address4.sin_port = htonl(port);
+		address4.sin_addr.s_addr = INADDR_ANY;
+	}
 	/* Bind da socket aos endereços a máquina. */
 	if(bind(i,(struct sockaddr*)&address,size)<0){
-		perror("ddt");
+		perror("ddt:bind");
 		exit(0);
 	}
 	
@@ -87,12 +98,12 @@ int connect_tcp(char* node, char* service){
 	i = socket(family,SOCK_STREAM,0);
 	
 	if(i<0){
-		perror("ddt");
+		perror("ddt:socket");
 		exit(0);
 	}
 	
 	if(connect(i,address,addr_length)<0){
-		perror("ddt");
+		perror("ddt:connect");
 		exit(0);
 	}
 	

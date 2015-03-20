@@ -68,12 +68,14 @@ int main(int argc, char**argv){
 
 	/*Cria a interface do utilizador*/
 	print_ui();
+	printf(">");
+
 
 	FD_ZERO(&fds);
 	FD_SET(STDIN, &fds);
 	max_fd=STDIN;
 
-	printf(">");
+	
 
 	while(1){
 
