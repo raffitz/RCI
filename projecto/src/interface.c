@@ -157,8 +157,11 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 		case 4: /* Exit */
 		case 5: /* Leave */
 			/* Sai do anel: */
-			if(transversal_data->peer_succ.socket==-1 &&
+			if(code != 4 && transversal_data->ring == -1){
+				printf("Não há anel do qual sair.\n");
+			}else if(transversal_data->peer_succ.socket==-1 &&
 			transversal_data->peer_pred.socket==-1){
+				transversal_data->ring = -1;
 				sprintf(str2, "UNR %d", transversal_data->ring);
 				sendto((*transversal_data).u,str2, strlen(str2),
 					0,(*transversal_data).startup_data.
@@ -171,6 +174,7 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 				printf("RCIDEBUG1: SA responds: <%s>",str2);
 #endif
 			}else if(transversal_data->serv_arranq){
+				transversal_data->ring = -1;
 				sprintf(str2, "REG %d %d %s %s",
 					transversal_data->ring,
 					transversal_data->peer_succ.id,

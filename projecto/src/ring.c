@@ -16,16 +16,22 @@ int join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 	bufsize = strlen(buffer);
 	
 #ifdef RCIDEBUG1
-	printf("\n sending message: <%s>\n",buffer);
+	printf("RCIDEBUG1: sending message: <%s>\n",buffer);
 #endif
-	sendto((*transversal_data).u,buffer,bufsize,0,(*transversal_data).startup_data.destination,(*transversal_data).startup_data.dest_size);
+	sendto((*transversal_data).u,buffer,bufsize,0,
+		(*transversal_data).startup_data.destination,
+		(*transversal_data).startup_data.dest_size);
 	
 	
 	buffer[recvfrom((*transversal_data).u,buffer,256,0,NULL,NULL)] = '\0';
 
 #ifdef RCIDEBUG1
-	printf("%s\n",buffer);
+	printf("RCIDEBUG1: %s\n",buffer);
 #endif
+	
+	sscanf(ring,"%d",&(transversal_data->ring));
+	sscanf(num,"%d",&(transversal_data->id));
+	transversal_data->reg = 1;
 	
 	return 0;
 }
