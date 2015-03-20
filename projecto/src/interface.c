@@ -70,9 +70,15 @@ comando inserido pelo utilizador.
 */
 int interface(struct transversal_data *transversal_data){
 	int num_com=0;
+	
+	char code = 0;
+	
 	char comands[6][256];
 	char str[256];
 	char str2[256];
+
+	int anel_id, no_id;
+	int no_proc_id;
 
 	fgets(str, 256, stdin);
 	num_com=sscanf(str, "%s %s %s %s %s %s", comands[0], comands[1],
@@ -80,12 +86,33 @@ int interface(struct transversal_data *transversal_data){
 
 
 	if(num_com==6){
-	//faz join succi
+		if(strcmp(comands[0], "join")==0) code = 1;
 	}
 	//deve ser join
 	else if(num_com==3){
-		int anel_id, no_id;
-		if(strcmp(comands[0], "join")==0){
+		if(strcmp(comands[0], "join")==0) code = 2;
+	}
+	//Deve ser search
+	else if(num_com==2){
+		if(strcmp(comands[0], "search")==0) code = 3;
+	}
+	else if(num_com==1){
+		if(strcmp(comands[0], "leave")==0){
+			code = 5;
+		}else if(strcmp(comands[0], "show")==0){
+			code = 6;
+		}else if(strcmp(comands[0], "exit")==0){
+			code = 4;
+		}else if(strcmp(comands[0], "help")==0){
+			code = 7;
+		}
+	}
+	
+	
+	switch(code){
+		case 1: /* join com IPs */
+			break;
+		case 2: /* join só com número */
 			if(sscanf(comands[1], "%d", &anel_id)==1 &&
 			sscanf(comands[2], "%d", &no_id)==1){
 				if(no_id>=0 && no_id<64){
@@ -102,29 +129,21 @@ int interface(struct transversal_data *transversal_data){
 				print_join_s();
 				print_join_l();
 			}
-		}else{
-			print_error();
-		}
-
-	}
-	//Deve ser search
-	else if(num_com==2){
-		int no_proc_id;
-
-		if(strcmp(comands[0], "search")==0){
+			break;
+		case 3: /* Search */
 			if(sscanf(comands[1], "%d", &no_proc_id)==1){
 				if(no_proc_id>=0 && no_proc_id<64){
-				//faz search
-				/*
-				if(verifica_se_responsavel(comands[1])){
-				//se for ele responsavel entao responde logo ao utilizador
-				printf("\n%s, %s, %s\n", transversal_data.id, transversal_data.ext_addr,
-				transversal_data.startup_data.ringport);
-				}else{
-				//faz search do no que se procura enviando QRY j i ao succi
-				sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
-				write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
-				}*/
+//faz search
+/*
+if(verifica_se_responsavel(comands[1])){
+//se for ele responsavel entao responde logo ao utilizador
+printf("\n%s, %s, %s\n", transversal_data.id, transversal_data.ext_addr,
+transversal_data.startup_data.ringport);
+}else{
+//faz search do no que se procura enviando QRY j i ao succi
+sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
+write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
+}*/
 				}else{
 					printf("Identificador do nó fora do"
 					" alcance. Deve estar entre 0 e 63.\n");
@@ -134,12 +153,9 @@ int interface(struct transversal_data *transversal_data){
 					" Deverá ser da forma:\n");
 				print_search();
 			}
-		}else{
-			print_error();
-		}
-	}
-	else if(num_com==1){
-		if(strcmp(comands[0], "leave")==0){
+			break;
+		case 4: /* Exit */
+		case 5: /* Leave */
 			/* Sai do anel: */
 			if(transversal_data->peer_succ.socket==-1 &&
 			transversal_data->peer_pred.socket==-1){
@@ -151,6 +167,9 @@ int interface(struct transversal_data *transversal_data){
 						dest_size);
 				recvfrom((*transversal_data).u,str2,256,0,NULL,
 					NULL);
+#ifdef RCIDEBUG1
+				printf("RCIDEBUG1: SA responds: <%s>",str2);
+#endif
 			}else if(transversal_data->serv_arranq){
 				sprintf(str2, "REG %d %d %s %s",
 					transversal_data->ring,
@@ -164,28 +183,45 @@ int interface(struct transversal_data *transversal_data){
 						dest_size);
 				recvfrom((*transversal_data).u,str2,256,0,NULL,
 					NULL);
+#ifdef RCIDEBUG1
+				printf("RCIDEBUG1: SA responds: <%s>\n",str2);
+#endif
 				sprintf(str2, "BOOT");
 				dprintf(transversal_data->peer_succ.socket,"%s",
 					str2);
 				close(transversal_data->peer_succ.socket);
 				close(transversal_data->peer_pred.socket);
-			}else{
-				print_error();
-			}
-		}else if(strcmp(comands[0], "show")==0){
-			/* Mostra os dados do anel: */
+				
+				transversal_data->peer_pred.id = -1;
+				transversal_data->peer_pred.node[0] = 0;
+				transversal_data->peer_pred.service[0] = 0;
+				transversal_data->peer_pred.socket = -1;
 
-		}else if(strcmp(comands[0], "exit")==0){
-			/* Sai do programa: */
-			return (1);
-		}else if(strcmp(comands[0], "help")==0){
+				transversal_data->peer_succ.id = -1;
+				transversal_data->peer_succ.node[0] = 0;
+				transversal_data->peer_succ.service[0] = 0;
+				transversal_data->peer_succ.socket = -1;
+				
+			}else{
+				/* Algo de mágico se passa (unspecified
+				behaviour) */
+				print_error(); /* /!\ */
+			}
+			
+			if(code == 4) return (1); /* Epílogo do exit */
+			
+			break;
+		case 6: /* Show */
+			
+			break;
+		case 7: /* Help */
 			/* Mostra de novo os comandos disponíveis: */
 			print_ui();
-		}else{
+			break;
+		default: /* Erro: */
 			print_error();
-		}
-	}else{
-		print_error();
+			break;
 	}
+	
 	return 0;
 }
