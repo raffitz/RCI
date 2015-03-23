@@ -272,7 +272,9 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 
 	num_words = sscanf(buffer, "%s %s %s %s %s %s", message[0],message[1],
 		message[2],message[3],message[4],message[5]);
-	message[num_words][strlen(message[num_words])-1] = '\0';
+	if(message[num_words][strlen(message[num_words])-1] == '\n'){
+		message[num_words][strlen(message[num_words])-1] = '\0';
+	}
 	option = check_message((char**)message, num_words);
 
 	switch (option){
@@ -322,8 +324,18 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 
 		case 3:/* CON */
 			/* Tenho que me ligar ao nó i */
-			// /!\ connect_tcp(message[2], message[3]);
-			/* TODO falta guardar o nº do FD */
+			// Faz o update das informacoes do sucessor
+			sscanf(message[1], "%d", &transversal_data->peer_succ.id);
+			strcpy(transversal_data->peer_succ.node, message[2]);
+			strcpy(transversal_data->peer_succ.service, message[3]);
+			transversal_data->peer_succ.socket=connect_tcp(message[2], message[3]);//Conecta-se ao seu novo sucessor
+			//Envia mensagem ao successor a avisar que é o seu novo predecessor
+			sprintf(message_to_send, "NEW %d %s %s\n",
+				transversal_data->id,
+				transversal_data->ext_addr,
+				transversal_data->
+					startup_data.ringport);
+			write_message(message_to_send, transversal_data->peer_succ.socket);
 			break;
 
 		case 4:/* SUCC */
@@ -331,16 +343,21 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 			sucessor: */
 			if(atoi(message[1])==transversal_data->id){
 				/* Temos que escolher outro id */
+				printf("Esse id já existe no anel. Escolha outro.\n");
+				transversal_data->id=-1;
 			}else{
-				/* Liga-se a L (message[2] e message[3]) */
-				connect_tcp(message[2], message[3]);
+				// Faz o update das informacoes do sucessor
+				sscanf(message[1], "%d", &transversal_data->peer_succ.id);
+				strcpy(transversal_data->peer_succ.node, message[2]);
+				strcpy(transversal_data->peer_succ.service, message[3]);
+				transversal_data->peer_succ.socket=connect_tcp(message[2], message[3]);//Conecta-se ao seu novo sucessor
+				//Envia mensagem ao successor a avisar que é o seu novo predecessor
 				sprintf(message_to_send, "NEW %d %s %s\n",
 					transversal_data->id,
 					transversal_data->ext_addr,
 					transversal_data->
 						startup_data.ringport);
-				dprintf(transversal_data->peer_succ.socket,"%s",
-					message_to_send);
+				write_message(message_to_send, transversal_data->peer_succ.socket);
 			}
 			break;
 

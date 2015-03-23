@@ -70,9 +70,9 @@ comando inserido pelo utilizador.
 */
 int interface(struct transversal_data *transversal_data){
 	int num_com=0;
-	
+
 	char code = 0;
-	
+
 	char comands[6][256];
 	char str[256];
 	char str2[256];
@@ -107,8 +107,8 @@ int interface(struct transversal_data *transversal_data){
 			code = 7;
 		}
 	}
-	
-	
+
+
 	switch(code){
 		case 1: /* join com IPs */
 			break;
@@ -155,6 +155,64 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 			}
 			break;
 		case 4: /* Exit */
+			/* Sai do anel: */
+			if(transversal_data->ring == -1){
+				printf("Não há anel do qual sair.\n");
+			}else if(transversal_data->peer_succ.socket==-1 &&
+			transversal_data->peer_pred.socket==-1){
+				transversal_data->ring = -1;
+				sprintf(str2, "UNR %d", transversal_data->ring);
+				sendto((*transversal_data).u,str2, strlen(str2),
+					0,(*transversal_data).startup_data.
+						destination,
+					(*transversal_data).startup_data.
+						dest_size);
+				recvfrom((*transversal_data).u,str2,256,0,NULL,
+					NULL);
+	#ifdef RCIDEBUG1
+				printf("RCIDEBUG1: SA responds: <%s>",str2);
+	#endif
+			}else if(transversal_data->serv_arranq){
+				transversal_data->ring = -1;
+				sprintf(str2, "REG %d %d %s %s",
+					transversal_data->ring,
+					transversal_data->peer_succ.id,
+					transversal_data->peer_succ.node,
+					transversal_data->peer_succ.service);
+				sendto((*transversal_data).u,str2,strlen(str2),
+					0,(*transversal_data).startup_data.
+						destination,
+					(*transversal_data).startup_data.
+						dest_size);
+				recvfrom((*transversal_data).u,str2,256,0,NULL,
+					NULL);
+	#ifdef RCIDEBUG1
+				printf("RCIDEBUG1: SA responds: <%s>\n",str2);
+	#endif
+				sprintf(str2, "BOOT");
+				dprintf(transversal_data->peer_succ.socket,"%s",
+					str2);
+				close(transversal_data->peer_succ.socket);
+				close(transversal_data->peer_pred.socket);
+
+				transversal_data->peer_pred.id = -1;
+				transversal_data->peer_pred.node[0] = 0;
+				transversal_data->peer_pred.service[0] = 0;
+				transversal_data->peer_pred.socket = -1;
+
+				transversal_data->peer_succ.id = -1;
+				transversal_data->peer_succ.node[0] = 0;
+				transversal_data->peer_succ.service[0] = 0;
+				transversal_data->peer_succ.socket = -1;
+
+			}else{
+				/* Algo de mágico se passa (unspecified
+				behaviour) */
+				print_error(); /* /!\ */
+			}
+
+			return (1); /* Faz exit */
+
 		case 5: /* Leave */
 			/* Sai do anel: */
 			if(transversal_data->ring == -1){
@@ -195,7 +253,7 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 					str2);
 				close(transversal_data->peer_succ.socket);
 				close(transversal_data->peer_pred.socket);
-				
+
 				transversal_data->peer_pred.id = -1;
 				transversal_data->peer_pred.node[0] = 0;
 				transversal_data->peer_pred.service[0] = 0;
@@ -205,18 +263,16 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 				transversal_data->peer_succ.node[0] = 0;
 				transversal_data->peer_succ.service[0] = 0;
 				transversal_data->peer_succ.socket = -1;
-				
+
 			}else{
 				/* Algo de mágico se passa (unspecified
 				behaviour) */
 				print_error(); /* /!\ */
 			}
-			
-			if(code == 4) return (1); /* Epílogo do exit */
-			
+
 			break;
 		case 6: /* Show */
-			
+			printf("Anel: %d / ID: %d / Predecessor: %d / Antecessor: %d\n", transversal_data->ring, transversal_data->id, transversal_data->peer_succ.id, transversal_data->peer_pred.id);
 			break;
 		case 7: /* Help */
 			/* Mostra de novo os comandos disponíveis: */
@@ -226,6 +282,6 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 			print_error();
 			break;
 	}
-	
+
 	return 0;
 }

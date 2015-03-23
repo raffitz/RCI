@@ -59,7 +59,6 @@ int main(int argc, char**argv){
 
 	/* Abertura da socket UDP: */
 	createsocket_udp(&transversal_data);
-
 	/* Determinação do IP externo (via UDP): */
 	probe_my_IP(&transversal_data);
 

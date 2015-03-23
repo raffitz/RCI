@@ -25,16 +25,16 @@ estrutura comum a estrutura correspondente a esse endereço.
 Na estrutura comum é alocada memória para a struct sockaddr de destino.
 */
 void getudpdest(char*node,char*service,struct startup_data *startup_data){
-	
+
 	(*startup_data).destination = NULL;
-	
+
 	/* Uma vez que o servidor disponibilizado pela docência não suporta
 	IPv6, é necessário forçar essa socket UDP para ser IPv4*/
 	/* (*startup_data).family = AF_INET; */
-	
+
 	getsockaddr(node,service,&((*startup_data).family),
 		&((*startup_data).dest_size),&((*startup_data).destination),0);
-	
+
 }
 
 /**
@@ -46,19 +46,19 @@ e abre uma socket UDP tendo como destino o servidor de arranque.
 */
 void createsocket_udp(struct transversal_data *transversal_data){
 	int i;
-	
+
 	sa_family_t family;
-	
+
 	family = (*transversal_data).startup_data.family;
-	
+
 	i = socket(family,SOCK_DGRAM,0);
 	if (i<0){
 		perror("ddt");
 		exit(0);
 	}
 	(*transversal_data).u = i;
-	
-	
+
+
 #ifdef RCIDEBUG1
 
 	char buf[256];
@@ -81,27 +81,26 @@ da interface a ser, de facto, utilizada.
 void probe_my_IP(struct transversal_data *transversal_data){
 	struct sockaddr sockaddr;
 	socklen_t length = sizeof(struct sockaddr);
-	
+
 	struct sockaddr_storage me;
 	socklen_t mysize = sizeof(struct sockaddr_storage);
-	
-	
+
 	sockaddr.sa_family = AF_UNSPEC;/* Para fazer reset do peer address */
-	
+
 	if(connect((*transversal_data).u,
 	(*transversal_data).startup_data.destination,
 	(*transversal_data).startup_data.dest_size)<0){
 		perror("ddt");
 		exit(0);
 	}
-	
+
 	/* GetSockName: */
 	if(getsockname((*transversal_data).u,(struct sockaddr*)&me,&mysize)<0){
 		perror("ddt");
 		exit(0);
 	}
-	
-	
+
+
 	getIP((struct sockaddr*) &me,mysize,(*transversal_data).ext_addr,NULL);
 
 #ifdef RCIDEBUG1
@@ -112,4 +111,5 @@ void probe_my_IP(struct transversal_data *transversal_data){
 		perror("ddt");
 		exit(0);
 	}
+
 }

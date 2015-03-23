@@ -21,31 +21,31 @@ Esta função consiste de socket(), bind() e listen() exclusivamente, o accept
 deve ser feito a posteriori, de maneira a não bloquear a execução do programa.
 */
 void createserver_tcp(struct transversal_data *transversal_data){
-	
+
 	int i;
 	int family;
 	uint32_t port;
-	
+
 	struct sockaddr* address;
-	
+
 	struct sockaddr_in6 address6;
 	struct sockaddr_in address4;
 	socklen_t size;
-	
-	
+
+
 	family = transversal_data->startup_data.family;
 	
 	/* Abertura da socket: */
 	i = socket(family,SOCK_STREAM,0);
-	
+
 	if(i<0){
 		perror("ddt:socket");
 		exit(0);
 	}
-	
-	
+
+
 	sscanf((*transversal_data).startup_data.ringport,"%u",&port);
-	
+
 	/* Especificação do endereço para o bind() : */
 	if(family == AF_INET){
 		size = sizeof(struct sockaddr_in);
@@ -67,16 +67,16 @@ void createserver_tcp(struct transversal_data *transversal_data){
 		perror("ddt:bind");
 		exit(0);
 	}
-	
+
 	/* Listen: */
 	if(listen(i,RCI_BACKLOG)<0){
 		perror("ddt");
 		exit(0);
 	}
-	
+
 	/* Armazenamento do index da socket na estrutura transversal: */
 	(*transversal_data).t = i;
-	
+
 	return;
 }
 
@@ -88,24 +88,24 @@ mesma socket.
 int connect_tcp(char* node, char* service){
 	int i;
 	int family = 0;
-	
+
 	struct sockaddr* address = NULL;
 	socklen_t addr_length;
-	
+
 	getsockaddr(node,service,&family,&addr_length,&address,1);
-	
+
 	/* Abertura da socket: */
 	i = socket(family,SOCK_STREAM,0);
-	
+
 	if(i<0){
 		perror("ddt:socket");
 		exit(0);
 	}
-	
+
 	if(connect(i,address,addr_length)<0){
 		perror("ddt:connect");
 		exit(0);
 	}
-	
+
 	return i;
 }
