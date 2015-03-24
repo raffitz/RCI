@@ -11,4 +11,6 @@ void getsockaddr(char *node,char *service,int *family,socklen_t *size,
 	
 void getIP(struct sockaddr *me, socklen_t mysize,char*node,char*service);
 
+void write_message(char * buffer, int fd);
+
 #endif

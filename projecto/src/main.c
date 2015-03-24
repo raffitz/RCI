@@ -15,6 +15,8 @@ funcionalidades do projecto.
 #include "interface.h"
 #include "message_handler.h"
 
+#define RCI_READSIZE 256
+
 #define STDIN 0
 
 /** Função principal do programa ddt. Esta função serve-se dos módulos criados
@@ -25,13 +27,13 @@ int main(int argc, char**argv){
 
 	struct transversal_data transversal_data;
 	int counter, max_fd;
-	char buffer[256];
+	char buffer[RCI_READSIZE];
 
 	/* Variáveis para o accept: */
-	struct sockaddr_storage address;
-	socklen_t length;
-	char caddr[40];
-	char cport[16];
+	int new_fd;
+	
+	/* Conjunto de file descriptors: */
+	fd_set fdset;
 
 	/* Inicialização dos valores transversais: */
 	reset_td(&transversal_data);
@@ -53,46 +55,58 @@ int main(int argc, char**argv){
 	printf(">");
 
 
-	//inicializa lista de fd's
-	FD_ZERO(&transversal_data.fds);
-	FD_SET(STDIN, &transversal_data.fds);
-	max_fd=STDIN;
-
-
-
 	while(1){
-		/*aguarda por um dos fd's para ser activado. Ou o accept, ou o stdin, ou o socket do predecessor
-		ou o socket do sucessor*/
-		counter = select(max_fd+1, &transversal_data.fds, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
-		if(counter <= 0){
-			exit(1);
+		/* Inicializa lista de fd's .*/
+		FD_ZERO(&fdset);
+		/* Para cada file descriptor que vamos ouvir, adiciona-o ao
+		select se estiver correntemente válido: */
+		FD_SET(STDIN, &fdset);
+		max_fd=STDIN;
+		if(transversal_data.t >= 0){
+			FD_SET(transversal_data.t, &fdset);
+			if(transversal_data.t>max_fd) max_fd=transversal_data.t;
 		}
-		/*Alguem quer fazer ligacao TCP connosco. Ou somos o no de arranque e quer se juntar
-		ao anel ou ele vai passar a ser o nosso predecessor*/
-		if(FD_ISSET(transversal_data.t ,&transversal_data.fds)){
-			//alguem esta-se a ligar a nos (select)
-			int new_fd;
-			//fazer accept e conectar-se
+		if(transversal_data.peer_pred.socket >= 0){
+			FD_SET(transversal_data.peer_pred.socket, &fdset);
+			if(transversal_data.peer_pred.socket>max_fd)
+				max_fd=transversal_data.peer_pred.socket;
+		}
+		if(transversal_data.peer_succ.socket >= 0){
+			FD_SET(transversal_data.peer_succ.socket, &fdset);
+			if(transversal_data.peer_succ.socket>max_fd)
+				max_fd=transversal_data.peer_pred.socket;
+		}
 
-			length = sizeof(struct sockaddr_storage);
+		
+		/* Aguarda por um dos fd's para ser activado. Ou o accept, ou o
+		stdin, ou o socket do predecessor ou o socket do sucessor: */
+		counter = select(max_fd+1, &fdset, (fd_set*)NULL,(fd_set*)NULL,
+			(struct timeval *)NULL);
+		if(counter <= 0){
+			perror("ddt:select");
+			exit(0);
+		}
+		/* Alguem quer fazer ligacao TCP connosco. Ou somos o no de
+		arranque e quer se juntar ao anel ou ele vai passar a ser o
+		nosso predecessor: */
+		if(FD_ISSET(transversal_data.t ,&fds)){
 
-			new_fd = accept(transversal_data.t,
-				(struct sockaddr*)&address,&length);
+			new_fd = accept(transversal_data.t,NULL,NULL);
 
 			getIP((struct sockaddr*) &address,length,caddr,cport);
 
-			read_message_tcp(buffer, new_fd);
-#ifdef RCIDEBUG1
-			printf("RCIDEBUG1: <%s : %s> says %s\n",caddr,cport,
-				buffer);
-#endif
-			trata_mensagem(buffer, &transversal_data, new_fd);
+			read_message_tcp(buffer,RCI_READSIZE,new_fd);
+			
+			handle_new_message(buffer,&transversal_data,new_fd);
 		}
 		if(transversal_data.peer_pred.socket>=0){
-			if(FD_ISSET(transversal_data.peer_pred.socket ,&transversal_data.fds)){
-				//predecessor mandou uma mensagem
-				read_message_tcp(buffer, transversal_data.peer_pred.socket);
-				trata_mensagem(buffer, &transversal_data, -1);
+			if(FD_ISSET(transversal_data.peer_pred.socket,
+			&transversal_data.fds)){
+				/* Predecessor mandou uma mensagem: */
+				read_message_tcp(buffer, transversal_data.
+					peer_pred.socket);
+				handle_pred_message(buffer, &transversal_data,
+					-1);
 			}
 		}
 		if(transversal_data.peer_succ.socket >= 0){

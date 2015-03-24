@@ -139,3 +139,19 @@ void getIP(struct sockaddr* me, socklen_t mysize,char*node, char*service)
 		exit(0);
 	}
 }
+
+void write_message(char * buffer, int fd){
+	int nleft=strlen(buffer);
+	int nwritten;
+	if(fd!=-1){
+		while(nleft>0){
+			nwritten=write(fd,buffer,nleft);
+			if(nwritten<=0){
+				//error
+			}
+			nleft-=nwritten;
+			buffer+=nwritten;
+		}
+	}
+	return;
+}

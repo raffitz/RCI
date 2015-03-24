@@ -23,6 +23,30 @@ int dist(int ele, int eu){
 
 }
 
+/** Função que preenche a estrutura de informação do par predecessor. */
+void preenche_predi_info(struct transversal_data * transversal_data, char* id,
+	char* ip, char* porto, int new_fd)
+{
+	sscanf(id, "%d", &transversal_data->peer_pred.id);
+	strcpy(transversal_data->peer_pred.node, ip);
+	strcpy(transversal_data->peer_pred.service, porto);
+	transversal_data->peer_pred.socket=new_fd;
+
+	return;
+}
+
+/** Função que preenche a estrutura de informação do par sucessor. */
+void preenche_predi_info(struct transversal_data * transversal_data, char* id,
+	char* ip, char* porto, int new_fd)
+{
+	sscanf(id, "%d", &transversal_data->peer_pred.id);
+	strcpy(transversal_data->peer_pred.node, ip);
+	strcpy(transversal_data->peer_pred.service, porto);
+	transversal_data->peer_pred.socket=new_fd;
+
+	return;
+}
+
 /** Função de verificação da responsabilidade de um nó. 1-> responsavel / 0->nao responsavel*/
 int verifica_se_responsavel(char * c, int eu_id, int predi_id){
 
@@ -39,40 +63,491 @@ int verifica_se_responsavel(char * c, int eu_id, int predi_id){
 	}
 }
 
-/** Função que lê dum file descriptor (socket) uma mensagem*/
-void read_message_tcp(char* buffer, int fd){
-	int flag = 0;
-	int nread;
-	int num_char = 0;
-
-//so le um char de cada vez para ir sempre verificando quando encontra o '\n'
-	while(flag==0){
-		nread=read(fd, buffer, 1);
-		if(nread==-1){
-			printf("Erro ao ler do file descriptor\n");
-			return;
-		}else if((nread==0) || (buffer[num_char]=='\n')){
-			buffer[num_char+1]='\0';
-			break;
+/** Verifica se a mensagem recebida de um novo nó é válida e identifica-a. A
+identificação é feita através do valor devolvido pela função, que pode ser um dos seguintes:
+	0-erro / 1-ID / 2-NEW
+*/
+int check_new_message(char** message, int num_words){
+	int new_pred;
+	int procu_id;
+	/* Deve ser new ou connect ou success: */
+	else if(num_words==4){
+		if(strcmp(message[0], "NEW")==0){
+			int new_pred;
+			if(sscanf(message[1], "%d", &new_pred)==1){
+				if(new_pred>=0 && new_pred<64){
+					return(2);
+				}else{
+#ifdef RCIDEBUG2
+					printf("[R] Identificador do nó fora do"
+					" alcance. Deve estar entre 0 e 63.\n");
+#endif
+					return(0);
+				}
+			}else{
+#ifdef RCIDEBUG2
+				printf("[R] Mensagem mal formatada!\n");
+#endif
+				return(0);
+			}
+		}else{
+#ifdef RCIDEBUG2
+			printf("[R] Mensagem incorrecta.\n");
+#endif
+			return(0);
 		}
-		num_char++;
-		buffer++;
+	}
+	/* Deve ser tentativa de um nó se juntar ao anel: */
+	else if(num_words==2){
+		if(strcmp(message[0], "ID")==0){
+			if(sscanf(message[1], "%d", &procu_id)==1){
+				if(procu_id>=0 && procu_id<64){
+					return(1);
+				}else{
+#ifdef RCIDEBUG2
+					printf("[R] Identificador do nó fora do"
+					" alcance. Deve estar entre 0 e 63.\n");
+#endif
+					return(0);
+				}
+			}else{
+#ifdef RCIDEBUG2
+				printf("[R] Mensagem mal formatada!\n");
+#endif
+				return(0);
+			}
+		}else{
+#ifdef RCIDEBUG2
+			printf("[R] Mensagem incorrecta.\n");
+#endif
+			return(0);
+		}
+	}else{ /* Mensagem esta mal formatada: */
+#ifdef RCIDEBUG2
+		printf("[R] Está tudo mal!\n");
+#endif
+		/* Sou particularmente adepto desta mensagem de erro */
+		return(0);
+	}
+
+}
+
+/** Função que age consoante a mensagem recebida de um novo nó. */
+void handle_new_message(char* buffer,struct transversal_data * transversal_data,
+int new_fd){
+	char message[6][256];
+	char response[256];
+	int num_words, option;
+	
+	int fd;
+	
+	connect_fd *aux;
+
+	num_words = sscanf(buffer, "%s %s %s %s %s %s", message[0],message[1],
+		message[2],message[3],message[4],message[5]);
+	
+	/* Redundante: */
+	if(message[num_words][strlen(message[num_words])-1] == '\n'){
+		message[num_words][strlen(message[num_words])-1] = '\0';
+	}
+	
+	option = check_new_message((char**)message, num_words);
+
+	switch (option){
+		case 1:/* ID */
+			if( (*transversal_data).serv_arranq == 0){
+				close(new_fd);
+				break;
+			}
+			if(verifica_se_responsavel(message[1],eu_id,predi_id)){
+				/* Se for ele responsável então responde logo
+				ao novo nó com a resposta adequada: */
+				sprintf(response, "SUCC %d %s %s\n",
+					transversal_data->id,
+					transversal_data->ext_addr,
+					transversal_data->
+						startup_data.ringport);
+				write_message(response, new_fd);
+				close(new_fd);
+			}else{
+				/* Faz search do nó que se procura enviando
+				QRY j i ao succ */
+				sprintf(response, "QRY %d %s\n",
+					transversal_data->id, message[1]);
+					write_message(response,
+						transversal_data->
+							peer_succ.socket);
+				aux = malloc(sizeof(connect_fd));
+				(*aux).fd = new_fd;
+				transversal_data->primeiro = add_fd(aux,
+					transversal_data->primeiro);
+			}
+			break;
+
+		case 2:/* NEW */
+			/* Mudar o predecessor para i */
+			if(transversal_data->peer_pred.socket==-1){
+				preenche_predi_info(transversal_data,  message[1],
+					message[2], message[3], new_fd);
+				fd = connect_tcp(message[2], message[3]);
+				
+			}else{
+				sprintf(response, "CON %s %s %s\n",
+					message[1], message[2], message[3]);
+				write_message(response,
+					transversal_data->peer_pred.socket);
+				close(transversal_data->peer_pred.socket);
+				preenche_predi_info(transversal_data,  message[1],
+					message[2], message[3], new_fd);
+			}
+			break;
+		default:/* Erro */
+			close(new_fd);
+			break;
 	}
 	return;
 }
 
-void write_message(char * buffer, int fd){
-	int nleft=strlen(buffer);
-	int nwritten;
-	if(fd!=-1){
-		while(nleft>0){
-			nwritten=write(fd,buffer,nleft);
-			if(nwritten<=0){
-				//error
+/** Verifica se a mensagem recebida dum predecessor é válida e identifica-a. A
+identificação é feita através do valor devolvido pela função, que pode ser um
+dos seguintes:
+	0-erro / 1-QRY / 2-BOOT
+*/
+int check_pred_message(char** message, int num_words){
+	int ini_id,procu_id;
+	
+	/* Deve ser procura QRY: */
+	if(num_words==3){
+		if(strcmp(message[0], "QRY")==0){
+			if(sscanf(message[1], "%d", &ini_id)==1 &&
+			sscanf(message[2], "%d", &procu_id)==1){
+				if((ini_id>=0 && ini_id<64) ||
+				(ini_id>=0 && ini_id<64)){
+					return(1);
+				}else{
+#ifdef RCIDEBUG2
+					printf("[R] Identificador do nó fora de"
+					" alcance. Deve estar entre 0 e 63.\n");
+#endif
+					return(0);
+				}
+			}else{
+#ifdef RCIDEBUG2
+				printf("[R] Mensagem mal formatada!\n");
+#endif
+				return(0);
 			}
-			nleft-=nwritten;
-			buffer+=nwritten;
+		}else{
+#ifdef RCIDEBUG2
+			printf("[R] Mensagem incorrecta.\n");
+#endif
+			return(0);
 		}
+	}else if(num_words==1){
+		if(strcmp(message[0], "BOOT")==0){
+			return(2);
+		}
+		else{
+#ifdef RCIDEBUG2
+			printf("[R] Mensagem incorrecta.\n");
+#endif
+			return(0);
+		}
+	}else{ /* Mensagem esta mal formatada: */
+#ifdef RCIDEBUG2
+		printf("[R] Está tudo mal!\n");
+		/* Sou particularmente adepto desta mensagem de erro */
+#endif
+		return(0);
+	}
+
+}
+
+/** Função que responde às mensagens recebidas do predecessor. */
+void handle_pred_message(char* buffer,
+struct transversal_data * transversal_data, int new_fd){
+	char message[6][256];
+	char response[256];
+	int num_words, option;
+
+
+	num_words = sscanf(buffer, "%s %s %s %s %s %s", message[0],message[1],
+		message[2],message[3],message[4],message[5]);
+	
+	/* Em princípio, redundante: */
+	if(message[num_words][strlen(message[num_words])-1] == '\n'){
+		message[num_words][strlen(message[num_words])-1] = '\0';
+	}
+	option = check_pred_message((char**)message, num_words);
+
+	switch (option){
+		case 1:/* QRY */
+			/* Verifica se é responsável pelo nó.
+			Depois responde adequadamente. */
+			if(verifica_se_responsavel(message[2],eu_id,predi_id)){
+			/* Se for responsável responde: */
+				sprintf(response, "RSP %s %s %d %s %s\n",
+					message[1], message[2],
+					transversal_data->id,
+					transversal_data->ext_addr,
+					transversal_data->
+						startup_data.ringport);
+				write_message(response, transversal_data->
+					peer_pred.socket);
+			}else{
+			/* Se não for responsável passa a mensagem a succ: */
+				write_message(buffer, transversal_data->
+					peer_succ.socket);
+			}
+			break;
+
+		case 2:/* BOOT */
+			/* Muda a variavel que diz se somos no de arranque ou
+				nao. */
+			transversal_data->serv_arranq = 1;
+			break;
+		default:/* Erro */
+			/* Squash da mensagem anómala */
+#ifdef RCIDEBUG2
+				printf("pred says\"%s\"\n",buffer);
+#endif
+			break;
+	}
+	return;
+}
+
+/** Verifica se a mensagem recebida do sucessor é válida e identifica-a. A
+identificação é feita através do valor devolvido pela função, que pode ser um
+dos seguintes:
+	0-erro / 1-RSP / 2-CON
+*/
+int check_succ_message(char** message, int num_words){
+	int ini_id
+	/* Deve ser RSP: */
+	if(num_words==6){
+		if(strcmp(message[0], "RSP")==0){
+			if(sscanf(message[1], "%d", &ini_id)==1 &&
+			sscanf(message[2], "%d", &procu_id)==1 &&
+			sscanf(message[3], "%d", &resp_id)==1){
+				if((ini_id>=0 && ini_id<64) ||
+				(procu_id>=0 && procu_id<64) ||
+				(resp_id>=0 && resp_id<64)){
+					return(1);
+				}else{
+					printf("[R] Identificador do nó fora do"
+					" alcance. Deve estar entre 0 e 63.\n");
+					return(0);
+				}
+			}else{
+				printf("[R] Mensagem mal formatada!\n");
+				return(0);
+			}
+		}else{
+			printf("[R] Mensagem incorrecta.\n");
+			return(0);
+		}
+	}else if(num_words==4){
+		if(strcmp(message[0], "CON")==0){
+			int new_succ;
+			if(sscanf(message[1], "%d", &new_succ)==1){
+				if(new_succ && new_succ<64){
+					return(3);
+				}else{
+					printf("[R] Identificador do nó fora do"
+					" alcance. Deve estar entre 0 e 63.\n");
+					return(0);
+				}
+			}else{
+				printf("[R] Mensagem mal formatada!\n");
+				return(0);
+			}
+		}else{
+			printf("[R] Mensagem incorrecta.\n");
+			return(0);
+		}
+	}else{
+		/* Mensagem esta mal formatada: */
+		printf("[R] Está tudo mal!\n");
+		/* Sou particularmente adepto desta mensagem de erro */
+		return(0);
+	}
+
+}
+
+
+
+/** Função que preenche a estrutura de informação do par predecessor. */
+void trata_mensagem(char* buffer, struct transversal_data * transversal_data, int new_fd){
+	char message[6][256];
+	int num_words, option;
+	char message_to_send[128];
+	int eu_id, predi_id;
+	int anel_id, fd_with_arr;
+	char str_aux[256];
+
+	eu_id=transversal_data->id;
+	predi_id=transversal_data->peer_pred.id;
+
+	num_words = sscanf(buffer, "%s %s %s %s %s %s", message[0],message[1],
+		message[2],message[3],message[4],message[5]);
+	if(message[num_words][strlen(message[num_words])-1] == '\n'){
+		message[num_words][strlen(message[num_words])-1] = '\0';
+	}
+	option = check_message((char**)message, num_words);
+
+	switch (option){
+		case 1:/* RSP */
+			/* Se message[1] (no que fez pesquisa) for o mesmo que o nó actual então responde.
+			Se não, passa a mensagem. */
+			if(atoi(message[1])==transversal_data->id){
+				/* Se a pesquisa foi iniciada pelo próprio,
+				então a resposta é dada ao utilizador ou ao nó
+				que deseja aderir.*/
+				connect_fd * aux;
+				int fd_aux;
+				aux=search_fd(message[2], transversal_data->primeiro, &fd_aux);
+				if(fd_aux==0){
+					printf("\n%s, %s, %s\n", message[3], message[4],
+					message[5]);
+				}else{
+					sprintf(message_to_send, "SUCC %s %s %s\n",
+					message[3], message[4], message[5]);
+					write_message(message_to_send, fd_aux);
+				}
+				transversal_data->primeiro=remove_fd(aux, transversal_data->primeiro);
+			}else{
+				/* Se a mensagem não foi iniciada pelo próprio,
+				retransmite a mensagem para predi. */
+				write_message(buffer,
+					transversal_data->peer_pred.socket);
+			}
+			break;
+
+		case 2:/* NEW */
+			/* Mudar o predecessor para i */
+			if(transversal_data->peer_pred.socket==-1){
+				preenche_predi_info(transversal_data,  message[1],
+					message[2], message[3], new_fd);
+				sscanf(message[1], "%d", &transversal_data->peer_succ.id);
+				strcpy(transversal_data->peer_succ.node, message[2]);
+				strcpy(transversal_data->peer_succ.service, message[3]);
+				transversal_data->peer_succ.socket=new_fd;
+			}else{
+				sprintf(message_to_send, "CON %s %s %s\n",
+					message[1], message[2], message[3]);
+				preenche_predi_info(transversal_data,  message[1],
+					message[2], message[3], new_fd);
+			}
+			break;
+
+		case 3:/* CON */
+			/* Tenho que me ligar ao nó i */
+			// Faz o update das informacoes do sucessor
+			sscanf(message[1], "%d", &transversal_data->peer_succ.id);
+			strcpy(transversal_data->peer_succ.node, message[2]);
+			strcpy(transversal_data->peer_succ.service, message[3]);
+			transversal_data->peer_succ.socket=connect_tcp(message[2], message[3]);//Conecta-se ao seu novo sucessor
+			//Envia mensagem ao successor a avisar que é o seu novo predecessor
+			sprintf(message_to_send, "NEW %d %s %s\n",
+				transversal_data->id,
+				transversal_data->ext_addr,
+				transversal_data->
+					startup_data.ringport);
+			write_message(message_to_send, transversal_data->peer_succ.socket);
+			break;
+
+		case 4:/* SUCC */
+			/* Informar o no que quer aderir que encontramos o seu
+			sucessor: */
+			if(atoi(message[1])==transversal_data->id){
+				/* Temos que escolher outro id */
+				printf("Esse id já existe no anel. Escolha outro.\n");
+				transversal_data->id=-1;
+			}else{
+				// Faz o update das informacoes do sucessor
+				sscanf(message[1], "%d", &transversal_data->peer_succ.id);
+				strcpy(transversal_data->peer_succ.node, message[2]);
+				strcpy(transversal_data->peer_succ.service, message[3]);
+				//Conecta-se ao seu novo sucessor
+				transversal_data->peer_succ.socket=connect_tcp(message[2], message[3]);
+				//Poe o fd do seu sucessor no select
+				FD_SET(transversal_data->peer_succ.socket, &transversal_data->fds);
+				//Envia mensagem ao successor a avisar que é o seu novo predecessor
+				sprintf(message_to_send, "NEW %d %s %s\n",
+					transversal_data->id,
+					transversal_data->ext_addr,
+					transversal_data->
+						startup_data.ringport);
+				write_message(message_to_send, transversal_data->peer_succ.socket);
+			}
+			break;
+
+		case 5:/* QRY */
+			/* Verifica se ele e responsavel pelo no.
+			Depois responde adequadamente. */
+			if(verifica_se_responsavel(message[2],eu_id,predi_id)){
+			/* Se for responsavel responde: */
+				sprintf(message_to_send, "RSP %s %s %d %s %s\n",
+					message[1], message[2],
+					transversal_data->id,
+					transversal_data->ext_addr,
+					transversal_data->
+						startup_data.ringport);
+				write_message(message_to_send, transversal_data->peer_pred.socket);
+			}else{
+			/*Se nao for responsavel passa a mensagem a succ */
+				write_message(message_to_send, transversal_data->peer_succ.socket);
+			}
+			break;
+
+		case 6:/* ID */
+			if(verifica_se_responsavel(message[1],eu_id,predi_id)){
+				/* Se for ele responsavel entao responde logo
+				ao novo no com a resposta adequada: */
+				sprintf(message_to_send, "SUCC %d %s %s\n",
+					transversal_data->id, transversal_data->ext_addr, transversal_data->startup_data.ringport);
+				write_message(message_to_send, new_fd);
+			}else{
+				/* Faz search do no que se procura enviando
+				QRY j i ao succ */
+				sprintf(message_to_send, "QRY %d %s\n",
+					transversal_data->id, message[1]);
+					write_message(message_to_send, transversal_data->peer_succ.socket);
+					connect_fd con_fd;
+					con_fd.fd=new_fd;
+					transversal_data->primeiro = add_fd(&con_fd, transversal_data->primeiro);
+			}
+			break;
+
+		case 7:/* BOOT */
+			/* Muda a variavel que diz se somos no de arranque ou
+				nao. */
+			transversal_data->serv_arranq = 1;
+			break;
+
+		case 8:/* BRSP */
+			/* Conecta-se por TCP ao no de arranque e envia-lhe a
+				mensagem ID i */
+			sscanf(message[2], "%d", &anel_id);
+			if(anel_id!=transversal_data->id){
+				//conecta-se ao no de arranque
+				fd_with_arr = connect_tcp(message[3], message[4]);
+				//envia a mensagem com o id para ser pesquisado
+				sprintf(message_to_send, "ID %d", transversal_data->id);
+				write_message(message_to_send, fd_with_arr);
+				//espera pela resposta do no de arranque para saber onde se conectar no anel
+				read_message_tcp(str_aux, fd_with_arr);
+				close(fd_with_arr);
+				//Trata a mensagem enviada pelo nó de arranque (deve ser SUCC)
+				trata_mensagem(str_aux, transversal_data, -1);
+			}else{
+				printf("Esse id já existe no anel. Escolha outro.\n");
+				//Poe o id a default
+				transversal_data->id=-1;
+			}
+			break;
+		default:/* Erro */
+			break;
 	}
 	return;
 }
@@ -248,17 +723,7 @@ int check_message(char** message, int num_words){
 
 }
 
-/** Função que preenche a estrutura de informação do par predecessor. */
-void preenche_predi_info(struct transversal_data * transversal_data, char* id,
-	char* ip, char* porto, int new_fd)
-{
-	sscanf(id, "%d", &transversal_data->peer_pred.id);
-	strcpy(transversal_data->peer_pred.node, ip);
-	strcpy(transversal_data->peer_pred.service, porto);
-	transversal_data->peer_pred.socket=new_fd;
 
-	return;
-}
 
 /** Função que preenche a estrutura de informação do par predecessor. */
 void trata_mensagem(char* buffer, struct transversal_data * transversal_data, int new_fd){

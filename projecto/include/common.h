@@ -65,9 +65,6 @@ struct transversal_data{
 	int serv_arranq;
 	//Ponteiro para o primeiro da lista de queries
 	connect_fd * primeiro;
-	//set of file descriptors
-	fd_set fds;
-
 };
 
 
