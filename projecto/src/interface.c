@@ -75,7 +75,7 @@ int interface(struct transversal_data *transversal_data){
 
 	char comands[6][256];
 	char str[256];
-	char str2[256];
+	char message_to_send[256];
 
 	int anel_id, no_id;
 	int no_proc_id;
@@ -133,17 +133,19 @@ int interface(struct transversal_data *transversal_data){
 		case 3: /* Search */
 			if(sscanf(comands[1], "%d", &no_proc_id)==1){
 				if(no_proc_id>=0 && no_proc_id<64){
-//faz search
-/*
-if(verifica_se_responsavel(comands[1])){
-//se for ele responsavel entao responde logo ao utilizador
-printf("\n%s, %s, %s\n", transversal_data.id, transversal_data.ext_addr,
-transversal_data.startup_data.ringport);
-}else{
-//faz search do no que se procura enviando QRY j i ao succi
-sprintf(message_to_send, "QRY %d %s\n",transversal_data.id, message[1]);
-write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
-}*/
+					//faz search
+					if(transversal_data->ring==-1){
+						printf("Nao está conectado em nenhum anel\n");
+					}
+					else if(verifica_se_responsavel(comands[1], transversal_data->id, transversal_data->peer_pred.id)){
+						//se for ele responsavel entao responde logo ao utilizador
+						printf("\n%d, %s, %s\n", transversal_data->id, transversal_data->ext_addr,
+						transversal_data->startup_data.ringport);
+					}else{
+						//faz search do no que se procura enviando QRY j i ao succi
+						sprintf(message_to_send, "QRY %d %s\n",transversal_data->id, comands[1]);
+						write_message(message_to_send, transversal_data->peer_succ.socket);
+					}
 				}else{
 					printf("Identificador do nó fora do"
 					" alcance. Deve estar entre 0 e 63.\n");
@@ -161,37 +163,37 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 			}else if(transversal_data->peer_succ.socket==-1 &&
 			transversal_data->peer_pred.socket==-1){
 				transversal_data->ring = -1;
-				sprintf(str2, "UNR %d", transversal_data->ring);
-				sendto((*transversal_data).u,str2, strlen(str2),
+				sprintf(message_to_send, "UNR %d", transversal_data->ring);
+				sendto((*transversal_data).u,message_to_send, strlen(message_to_send),
 					0,(*transversal_data).startup_data.
 						destination,
 					(*transversal_data).startup_data.
 						dest_size);
-				recvfrom((*transversal_data).u,str2,256,0,NULL,
+				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
 					NULL);
 	#ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>",str2);
+				printf("RCIDEBUG1: SA responds: <%s>",message_to_send);
 	#endif
 			}else if(transversal_data->serv_arranq){
 				transversal_data->ring = -1;
-				sprintf(str2, "REG %d %d %s %s",
+				sprintf(message_to_send, "REG %d %d %s %s",
 					transversal_data->ring,
 					transversal_data->peer_succ.id,
 					transversal_data->peer_succ.node,
 					transversal_data->peer_succ.service);
-				sendto((*transversal_data).u,str2,strlen(str2),
+				sendto((*transversal_data).u,message_to_send,strlen(message_to_send),
 					0,(*transversal_data).startup_data.
 						destination,
 					(*transversal_data).startup_data.
 						dest_size);
-				recvfrom((*transversal_data).u,str2,256,0,NULL,
+				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
 					NULL);
 	#ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>\n",str2);
+				printf("RCIDEBUG1: SA responds: <%s>\n",message_to_send);
 	#endif
-				sprintf(str2, "BOOT");
+				sprintf(message_to_send, "BOOT");
 				dprintf(transversal_data->peer_succ.socket,"%s",
-					str2);
+					message_to_send);
 				close(transversal_data->peer_succ.socket);
 				close(transversal_data->peer_pred.socket);
 
@@ -208,7 +210,7 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 			}else{
 				/* Algo de mágico se passa (unspecified
 				behaviour) */
-				print_error(); /* /!\ */
+				print_error();
 			}
 
 			return (1); /* Faz exit */
@@ -220,37 +222,37 @@ write_message_tcp(message_to_send, transversal_data.peer_succ.socket);
 			}else if(transversal_data->peer_succ.socket==-1 &&
 			transversal_data->peer_pred.socket==-1){
 				transversal_data->ring = -1;
-				sprintf(str2, "UNR %d", transversal_data->ring);
-				sendto((*transversal_data).u,str2, strlen(str2),
+				sprintf(message_to_send, "UNR %d", transversal_data->ring);
+				sendto((*transversal_data).u,message_to_send, strlen(message_to_send),
 					0,(*transversal_data).startup_data.
 						destination,
 					(*transversal_data).startup_data.
 						dest_size);
-				recvfrom((*transversal_data).u,str2,256,0,NULL,
+				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
 					NULL);
 #ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>",str2);
+				printf("RCIDEBUG1: SA responds: <%s>",message_to_send);
 #endif
 			}else if(transversal_data->serv_arranq){
 				transversal_data->ring = -1;
-				sprintf(str2, "REG %d %d %s %s",
+				sprintf(message_to_send, "REG %d %d %s %s",
 					transversal_data->ring,
 					transversal_data->peer_succ.id,
 					transversal_data->peer_succ.node,
 					transversal_data->peer_succ.service);
-				sendto((*transversal_data).u,str2,strlen(str2),
+				sendto((*transversal_data).u,message_to_send,strlen(message_to_send),
 					0,(*transversal_data).startup_data.
 						destination,
 					(*transversal_data).startup_data.
 						dest_size);
-				recvfrom((*transversal_data).u,str2,256,0,NULL,
+				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
 					NULL);
 #ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>\n",str2);
+				printf("RCIDEBUG1: SA responds: <%s>\n",message_to_send);
 #endif
-				sprintf(str2, "BOOT");
+				sprintf(message_to_send, "BOOT");
 				dprintf(transversal_data->peer_succ.socket,"%s",
-					str2);
+					message_to_send);
 				close(transversal_data->peer_succ.socket);
 				close(transversal_data->peer_pred.socket);
 

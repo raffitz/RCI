@@ -266,6 +266,8 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 	int num_words, option;
 	char message_to_send[128];
 	int eu_id, predi_id;
+	int anel_id, fd_with_arr;
+	char str_aux[256];
 
 	eu_id=transversal_data->id;
 	predi_id=transversal_data->peer_pred.id;
@@ -350,7 +352,10 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 				sscanf(message[1], "%d", &transversal_data->peer_succ.id);
 				strcpy(transversal_data->peer_succ.node, message[2]);
 				strcpy(transversal_data->peer_succ.service, message[3]);
-				transversal_data->peer_succ.socket=connect_tcp(message[2], message[3]);//Conecta-se ao seu novo sucessor
+				//Conecta-se ao seu novo sucessor
+				transversal_data->peer_succ.socket=connect_tcp(message[2], message[3]);
+				//Poe o fd do seu sucessor no select
+				FD_SET(transversal_data->peer_succ.socket, &transversal_data->fds);
 				//Envia mensagem ao successor a avisar que é o seu novo predecessor
 				sprintf(message_to_send, "NEW %d %s %s\n",
 					transversal_data->id,
@@ -364,7 +369,6 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 		case 5:/* QRY */
 			/* Verifica se ele e responsavel pelo no.
 			Depois responde adequadamente. */
-
 			if(verifica_se_responsavel(message[2],eu_id,predi_id)){
 			/* Se for responsavel responde: */
 				sprintf(message_to_send, "RSP %s %s %d %s %s\n",
@@ -408,10 +412,23 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 		case 8:/* BRSP */
 			/* Conecta-se por TCP ao no de arranque e envia-lhe a
 				mensagem ID i */
-			// /!\ connect_tcp(message[3], message[4]);
-			/* TODO Falta guardar o FD */
-			sprintf(message_to_send, "ID %d", transversal_data->id);
-
+			sscanf(message[2], "%d", &anel_id);
+			if(anel_id!=transversal_data->id){
+				//conecta-se ao no de arranque
+				fd_with_arr = connect_tcp(message[3], message[4]);
+				//envia a mensagem com o id para ser pesquisado
+				sprintf(message_to_send, "ID %d", transversal_data->id);
+				write_message(message_to_send, fd_with_arr);
+				//espera pela resposta do no de arranque para saber onde se conectar no anel
+				read_message_tcp(str_aux, fd_with_arr);
+				close(fd_with_arr);
+				//Trata a mensagem enviada pelo nó de arranque (deve ser SUCC)
+				trata_mensagem(str_aux, transversal_data, -1);
+			}else{
+				printf("Esse id já existe no anel. Escolha outro.\n");
+				//Poe o id a default
+				transversal_data->id=-1;
+			}
 			break;
 		default:/* Erro */
 			break;

@@ -9,6 +9,7 @@ módulos do projecto.
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "fd_list.h"
+#include <sys/select.h>
 //#include <netinet/ip.h>
 
 /**
@@ -61,10 +62,11 @@ struct transversal_data{
 	char ext_addr[40];
 	// flag que indica se sou servidor de arranque ou nao
 	int serv_arranq;
-	//Socket com novo no do anel. So e utilizado se formos no de arranque.
-	int socket_with_new_node;
 	//Ponteiro para o primeiro da lista de queries
 	connect_fd * primeiro;
+	//set of file descriptors
+	fd_set fds;
+
 };
 
 #endif

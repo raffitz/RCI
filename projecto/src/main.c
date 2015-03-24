@@ -25,7 +25,6 @@ int main(int argc, char**argv){
 
 	struct transversal_data transversal_data;
 	int counter, max_fd;
-	fd_set fds;
 	char buffer[256];
 
 	/* Variáveis para o accept: */
@@ -71,8 +70,8 @@ int main(int argc, char**argv){
 
 
 	//inicializa lista de fd's
-	FD_ZERO(&fds);
-	FD_SET(STDIN, &fds);
+	FD_ZERO(&transversal_data.fds);
+	FD_SET(STDIN, &transversal_data.fds);
 	max_fd=STDIN;
 
 
@@ -80,13 +79,13 @@ int main(int argc, char**argv){
 	while(1){
 		/*aguarda por um dos fd's para ser activado. Ou o accept, ou o stdin, ou o socket do predecessor
 		ou o socket do sucessor*/
-		counter = select(max_fd+1, &fds, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
+		counter = select(max_fd+1, &transversal_data.fds, (fd_set*)NULL, (fd_set*)NULL, (struct timeval *)NULL);
 		if(counter <= 0){
 			exit(1);
 		}
 		/*Alguem quer fazer ligacao TCP connosco. Ou somos o no de arranque e quer se juntar
 		ao anel ou ele vai passar a ser o nosso predecessor*/
-		if(FD_ISSET(transversal_data.t ,&fds)){
+		if(FD_ISSET(transversal_data.t ,&transversal_data.fds)){
 			//alguem esta-se a ligar a nos (select)
 			int new_fd;
 			//fazer accept e conectar-se
@@ -106,20 +105,20 @@ int main(int argc, char**argv){
 			trata_mensagem(buffer, &transversal_data, new_fd);
 		}
 		if(transversal_data.peer_pred.socket>=0){
-			if(FD_ISSET(transversal_data.peer_pred.socket ,&fds)){
+			if(FD_ISSET(transversal_data.peer_pred.socket ,&transversal_data.fds)){
 				//predecessor mandou uma mensagem
 				read_message_tcp(buffer, transversal_data.peer_pred.socket);
 				trata_mensagem(buffer, &transversal_data, -1);
 			}
 		}
-		if(transversal_data.peer_succ.socket>=0){
-			if(FD_ISSET(transversal_data.peer_succ.socket ,&fds)){
+		if(transversal_data.peer_succ.socket >= 0){
+			if(FD_ISSET(transversal_data.peer_succ.socket ,&transversal_data.fds)){
 				//sucessor mandou uma mensagem
 				read_message_tcp(buffer, transversal_data.peer_pred.socket);
 				trata_mensagem(buffer, &transversal_data, -1);
 			}
 		}
-		if(FD_ISSET(STDIN, &fds)){
+		if(FD_ISSET(STDIN, &transversal_data.fds)){
 			if (interface(&transversal_data)){
 				break;
 			}else{
