@@ -34,23 +34,7 @@ int main(int argc, char**argv){
 	char cport[16];
 
 	/* Inicialização dos valores transversais: */
-	transversal_data.u = -1;
-	transversal_data.t = -1;
-
-	transversal_data.peer_pred.id = -1;
-	transversal_data.peer_pred.node[0] = 0;
-	transversal_data.peer_pred.service[0] = 0;
-	transversal_data.peer_pred.socket = -1;
-
-	transversal_data.peer_succ.id = -1;
-	transversal_data.peer_succ.node[0] = 0;
-	transversal_data.peer_succ.service[0] = 0;
-	transversal_data.peer_succ.socket = -1;
-
-	transversal_data.ring = -1;
-	transversal_data.id = -1;
-	transversal_data.serv_arranq = 0;
-	transversal_data.primeiro = NULL;
+	reset_td(&transversal_data);
 
 	/* Leitura das opções: */
 	parse_options(&argc, &argv, &transversal_data);

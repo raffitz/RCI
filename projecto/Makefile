@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -pedantic -std=c99 -g -DRCIDEBUG1
 INCDIR=include
 SRCDIR=src
-OBJECTS=options.o net_common.o net_udp.o net_tcp.o interface.o ring.o message_handler.o fd_list.o
+OBJECTS=options.o net_common.o net_udp.o net_tcp.o interface.o ring.o message_handler.o fd_list.o common.o
 
 all: ddt
 

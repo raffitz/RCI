@@ -70,7 +70,7 @@ void createserver_tcp(struct transversal_data *transversal_data){
 
 	/* Listen: */
 	if(listen(i,RCI_BACKLOG)<0){
-		perror("ddt");
+		perror("ddt:listen");
 		exit(0);
 	}
 

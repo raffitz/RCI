@@ -302,8 +302,8 @@ void trata_mensagem(char* buffer, struct transversal_data * transversal_data, in
 			}else{
 				/* Se a mensagem não foi iniciada pelo próprio,
 				retransmite a mensagem para predi. */
-				dprintf(transversal_data->peer_pred.socket,
-					"%s",buffer);;
+				write_message(buffer,
+					transversal_data->peer_pred.socket);
 			}
 			break;
 

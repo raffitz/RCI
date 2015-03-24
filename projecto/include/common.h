@@ -1,6 +1,7 @@
 /** \file common.h
 Cabeçalho com declarações das estruturas de dados transversais aos vários
-módulos do projecto.
+módulos do projecto e com os protótipos das funções de gestão dessas mesmas
+estruturas.
 */
 
 #ifndef RCI_COMMON
@@ -68,5 +69,8 @@ struct transversal_data{
 	fd_set fds;
 
 };
+
+
+void reset_td(struct transversal_data * transversal_data);
 
 #endif
