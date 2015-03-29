@@ -149,17 +149,19 @@ int new_fd){
 			}else{
 				/* Faz search do nó que se procura enviando
 				QRY j i ao succ */
-				sprintf(response, "QRY %d %s\n",
-					transversal_data->id, message[1]);
-					write_message(response,
-						transversal_data->
-							peer_succ.socket);
+				
 				aux = malloc(sizeof(connect_fd));
 				(*aux).id = message[1][0];
 				(*aux).fd = new_fd;
 				(*aux).next = NULL;
 				transversal_data->primeiro = add_fd(aux,
 					transversal_data->primeiro);
+				
+				sprintf(response, "QRY %d %s\n",
+					transversal_data->id, message[1]);
+					write_message(response,
+						transversal_data->
+							peer_succ.socket);
 			}
 			break;
 

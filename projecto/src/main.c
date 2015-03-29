@@ -7,6 +7,7 @@ funcionalidades do projecto.
 #include <sys/select.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "common.h"
 #include "options.h"
 #include "net_common.h"
@@ -103,28 +104,53 @@ int main(int argc, char**argv){
 
 			new_fd = accept(transversal_data.t,NULL,NULL);
 
-			read_message_tcp(buffer,RCI_READSIZE,new_fd);
+			if(read_message_tcp(buffer,RCI_READSIZE,new_fd)<0){
+				close(new_fd);
+			}else{
+				handle_new_message(buffer,&transversal_data,
+					new_fd);
+			}
 			
-			handle_new_message(buffer,&transversal_data,new_fd);
+			
 		}
 		if(transversal_data.peer_pred.socket>=0){
 			if(FD_ISSET(transversal_data.peer_pred.socket,
 			&fdset)){
 				/* Predecessor mandou uma mensagem: */
-				read_message_tcp(buffer,RCI_READSIZE,
-					transversal_data.peer_pred.socket);
-				handle_pred_message(buffer, &transversal_data,
-					-1);
+				if(read_message_tcp(buffer,RCI_READSIZE,
+				transversal_data.peer_pred.socket)<0){
+					close(transversal_data.peer_pred.
+						socket);
+					transversal_data.peer_pred.id = -1;
+					transversal_data.peer_pred.node[0] = 0;
+					transversal_data.peer_pred.service[0]=
+						0;
+					transversal_data.peer_pred.socket = -1;
+				}else{
+					handle_pred_message(buffer,
+						&transversal_data,-1);
+				}
 			}
 		}
 		if(transversal_data.peer_succ.socket >= 0){
 			if(FD_ISSET(transversal_data.peer_succ.socket,
 			&fdset)){
 				//sucessor mandou uma mensagem
-				read_message_tcp(buffer,RCI_READSIZE,
-					transversal_data.peer_pred.socket);
-				handle_succ_message(buffer,&transversal_data,
-					-1);
+				if(read_message_tcp(buffer,RCI_READSIZE,
+				transversal_data.peer_succ.socket)<0){
+					close(transversal_data.peer_succ.
+						socket);
+					
+					transversal_data.peer_succ.id = -1;
+					transversal_data.peer_succ.node[0] = 0;
+					transversal_data.peer_succ.service[0]=
+						0;
+					transversal_data.peer_succ.socket = -1;
+					
+				}else{
+					handle_succ_message(buffer,
+					&transversal_data,-1);
+				}
 			}
 		}
 		if(FD_ISSET(STDIN, &fdset)){

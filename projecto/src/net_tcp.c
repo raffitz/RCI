@@ -112,16 +112,19 @@ int connect_tcp(char* node, char* service){
 }
 
 /** Função que lê dum file descriptor (socket) uma mensagem. */
-void read_message_tcp(char* dest,int destsize, int fd){
+int read_message_tcp(char* dest,int destsize, int fd){
 	int nread;
 	int num_char = 0;
 	char readbyte;
 	/* Lê um char de cada vez para verificar quando encontra o '\n': */
 	while(1){
+		
+		/* FALTA AQUI SELECT PARA TIMEOUT */
+		
 		nread=read(fd, &readbyte, 1);
 		if(nread==-1){
 			printf("Erro ao ler do file descriptor\n");
-			return;
+			return -1;
 		}else if((nread==0) || (readbyte=='\n')){
 			dest[num_char]='\0';
 			break;
@@ -135,5 +138,5 @@ void read_message_tcp(char* dest,int destsize, int fd){
 			break;
 		}
 	}
-	return;
+	return 0;
 }
