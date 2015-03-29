@@ -89,11 +89,9 @@ int main(int argc, char**argv){
 		/* Alguem quer fazer ligacao TCP connosco. Ou somos o no de
 		arranque e quer se juntar ao anel ou ele vai passar a ser o
 		nosso predecessor: */
-		if(FD_ISSET(transversal_data.t ,&fds)){
+		if(FD_ISSET(transversal_data.t ,&fdset)){
 
 			new_fd = accept(transversal_data.t,NULL,NULL);
-
-			getIP((struct sockaddr*) &address,length,caddr,cport);
 
 			read_message_tcp(buffer,RCI_READSIZE,new_fd);
 			
@@ -101,22 +99,25 @@ int main(int argc, char**argv){
 		}
 		if(transversal_data.peer_pred.socket>=0){
 			if(FD_ISSET(transversal_data.peer_pred.socket,
-			&transversal_data.fds)){
+			&fdset)){
 				/* Predecessor mandou uma mensagem: */
-				read_message_tcp(buffer, transversal_data.
-					peer_pred.socket);
+				read_message_tcp(buffer,RCI_READSIZE,
+					transversal_data.peer_pred.socket);
 				handle_pred_message(buffer, &transversal_data,
 					-1);
 			}
 		}
 		if(transversal_data.peer_succ.socket >= 0){
-			if(FD_ISSET(transversal_data.peer_succ.socket ,&transversal_data.fds)){
+			if(FD_ISSET(transversal_data.peer_succ.socket,
+			&fdset)){
 				//sucessor mandou uma mensagem
-				read_message_tcp(buffer, transversal_data.peer_pred.socket);
-				trata_mensagem(buffer, &transversal_data, -1);
+				read_message_tcp(buffer,RCI_READSIZE,
+					transversal_data.peer_pred.socket);
+				handle_succ_message(buffer,&transversal_data,
+					-1);
 			}
 		}
-		if(FD_ISSET(STDIN, &transversal_data.fds)){
+		if(FD_ISSET(STDIN, &fdset)){
 			if (interface(&transversal_data)){
 				break;
 			}else{

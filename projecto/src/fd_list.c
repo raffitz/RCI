@@ -20,36 +20,41 @@ connect_fd * add_fd(connect_fd * new_fd, connect_fd * primeiro){
 }
 
 connect_fd * search_fd(char* id, connect_fd * primeiro, int * socket){
-  connect_fd * aux1, *aux2;
+	connect_fd * aux;
 
-  aux1=primeiro;
-  aux2=primeiro;
+	aux=primeiro;
 
-  if (primeiro == NULL){
-    return NULL;
-  }else{
-    while(aux1->id!=id[0]){
-      aux2=aux1;
-      aux1=aux1->next;
-      if (aux1==NULL){
-        return NULL;
-      }
-    }
-  }
-  *socket = aux1->fd;
-  return aux2;
+	if (primeiro == NULL){
+		return NULL;
+	}else{
+		while(aux->id!=id[0]){
+			aux=aux->next;
+			if (aux==NULL){
+				return NULL;
+			}
+		}
+	}
+	*socket = aux->fd;
+	return aux;
 }
 
 
 connect_fd * remove_fd(connect_fd * rmv_fd, connect_fd * primeiro){
-  connect_fd * aux;
-  if(rmv_fd!=primeiro){
-    aux=rmv_fd->next->next;
-    free(rmv_fd->next);
-    rmv_fd->next=aux;
-  }else{
-    primeiro=rmv_fd->next;
-    free(rmv_fd->next);
-  }
-  return primeiro;
+	connect_fd * aux = primeiro;
+	if(primeiro == NULL || rmv_fd == NULL) return primeiro;
+	if(rmv_fd!=primeiro){
+		while((*aux).next != rmv_fd && (*aux).next != NULL){
+			aux = (*aux).next;
+		}
+		if ((*aux).next == rmv_fd){
+			(*aux).next = (*rmv_fd).next;
+			free(rmv_fd);
+		}
+		
+	}else{
+		aux = primeiro;
+		primeiro=rmv_fd->next;
+		free(aux);
+	}
+	return primeiro;
 }

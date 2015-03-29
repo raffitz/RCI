@@ -6,6 +6,7 @@ não associadas a nenhum dos protocolos utilizados.
 #define _XOPEN_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>

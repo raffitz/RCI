@@ -5,6 +5,6 @@
 
 #include "common.h"
 
-int join_ring(char* ring, char* num, struct transversal_data *transversal_data);
+void join_ring(char* ring, char* num, struct transversal_data *transversal_data);
 
 #endif
