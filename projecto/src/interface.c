@@ -200,7 +200,9 @@ int interface(struct transversal_data *transversal_data){
 			if(transversal_data->ring == -1){
 				printf("Não há anel do qual sair.\n");
 			}else if(transversal_data->serv_arranq &&
-			transversal_data->peer_succ.socket==-1){
+			(transversal_data->peer_succ.socket==-1 || 
+			transversal_data->peer_succ.id ==
+			transversal_data->id)){
 			
 				
 				for(counter=0;counter<5;counter++){
@@ -241,7 +243,9 @@ int interface(struct transversal_data *transversal_data){
 				
 				transversal_data->ring = -1;
 				
-				if(transversal_data->peer_pred.socket!=-1){
+				if(transversal_data->peer_pred.socket!=-1 &&
+				transversal_data->peer_pred.id !=
+				transversal_data->id){
 					sprintf(message_to_send,"CON %d %s %s\n"
 						,transversal_data->peer_pred.id,
 						transversal_data->

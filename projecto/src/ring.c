@@ -32,6 +32,7 @@ int dist(int ele, int eu){
 int verifica_se_responsavel(char * c, int eu_id, int pred_id){
 
 	int id;
+	if(eu_id == pred_id) return 1;
 	if(pred_id>=0){
 		sscanf(c, "%d", &id);
 		if(dist(id, eu_id)<dist(id, pred_id)){
