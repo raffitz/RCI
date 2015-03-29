@@ -8,6 +8,7 @@ funcionalidades do projecto.
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 #include "common.h"
 #include "options.h"
 #include "net_common.h"
@@ -35,6 +36,12 @@ int main(int argc, char**argv){
 	
 	/* Conjunto de file descriptors: */
 	fd_set fdset;
+
+	/* Variável para o Signal Handler desactivado: */
+	void (*old_handler)(int);
+
+	/* Desactivação do signal handler: */
+	if((old_handler=signal(SIGPIPE,SIG_IGN))==SIG_ERR) exit(0);
 
 	/* Inicialização dos valores transversais: */
 	reset_td(&transversal_data);
