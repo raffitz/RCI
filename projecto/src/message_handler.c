@@ -295,6 +295,7 @@ struct transversal_data * transversal_data, int new_fd){
 					peer_pred.socket);
 			}else{
 			/* Se não for responsável passa a mensagem a succ: */
+				sprintf(buffer,"%s\n",buffer);
 				write_message(buffer, transversal_data->
 					peer_succ.socket);
 			}
@@ -436,6 +437,7 @@ int new_fd){
 			}else{
 				/* Se a mensagem não foi iniciada pelo próprio,
 				retransmite a mensagem para pred. */
+				sprintf(buffer,"%s\n",buffer);
 				write_message(buffer,
 					transversal_data->peer_pred.socket);
 			}
@@ -444,7 +446,13 @@ int new_fd){
 		case 2:/* CON */
 			/* Tenho que me ligar ao nó i */
 			
+			sprintf(response, "NEW %d %s %s\n",transversal_data->id,
+				transversal_data->ext_addr,transversal_data->
+					startup_data.ringport);
+			
 			fd_aux = connect_tcp(message[2], message[3]);
+			
+			write_message(response,fd_aux);
 			
 			if(transversal_data->peer_succ.socket != -1){
 				close(transversal_data->peer_succ.socket);
@@ -453,11 +461,8 @@ int new_fd){
 			preenche_succ_info(transversal_data,message[1],
 				message[2], message[3], fd_aux);
 				
-			sprintf(response, "NEW %d %s %s\n",transversal_data->id,
-				transversal_data->ext_addr,transversal_data->
-					startup_data.ringport);
-			write_message(response,transversal_data->
-				peer_succ.socket);
+			
+			
 			
 			break;
 

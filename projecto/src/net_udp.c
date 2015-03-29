@@ -7,7 +7,10 @@ protocolo UDP.
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include <netdb.h>
 #include <string.h>
 #include <stdint.h>
@@ -62,11 +65,35 @@ void createsocket_udp(struct transversal_data *transversal_data){
 #ifdef RCIDEBUG2
 
 	char buf[256];
+	
+	char counter = 0;
+	
+	fd_set to_fds;
+	
+	struct timeval timeout;
 
-	sendto(i,"BQRY 5",6,0,((*transversal_data).startup_data).destination,
-		((*transversal_data).startup_data).dest_size);
-	buf[recvfrom(i,buf,256,0,NULL,NULL)] = 0;
-	printf("RCIDEBUG1: UDP Test. Sent BQRY 5 to server.\nServer:%s\n",buf);
+	
+	for(counter=0;counter<5;counter++){
+		FD_ZERO(&to_fds);
+		FD_SET(i,&to_fds);
+		
+		timeout.tv_sec = 3;
+		timeout.tv_usec = 0;
+		
+		sendto(i,"BQRY 5",6,0,((*transversal_data).startup_data).
+			destination,((*transversal_data).startup_data).
+			dest_size);
+	
+		if(select(i+1,&to_fds,NULL,NULL,&timeout)<1) continue;
+	
+		if(FD_ISSET(i,&to_fds)){
+			buf[recvfrom(i,buf,256,0,NULL,NULL)] = 0;
+			printf("RCIDEBUG1: UDP: Sent BQRY 5 to server."
+				"\nServer:%s\n",buf);
+			break;
+		}
+		printf("Timeout elapsed. No contact from server.\n");
+	}
 #endif
 }
 
@@ -90,13 +117,13 @@ void probe_my_IP(struct transversal_data *transversal_data){
 	if(connect((*transversal_data).u,
 	(*transversal_data).startup_data.destination,
 	(*transversal_data).startup_data.dest_size)<0){
-		perror("ddt");
+		perror("ddt:connect");
 		exit(0);
 	}
 
 	/* GetSockName: */
 	if(getsockname((*transversal_data).u,(struct sockaddr*)&me,&mysize)<0){
-		perror("ddt");
+		perror("ddt:getsockname");
 		exit(0);
 	}
 
@@ -106,9 +133,9 @@ void probe_my_IP(struct transversal_data *transversal_data){
 #ifdef RCIDEBUG1
 	printf("RCIDEBUG1: My IP: %s\n",(*transversal_data).ext_addr);
 #endif
-	
+	/* Reset do porto UDP: */
 	if(connect((*transversal_data).u,&sockaddr,length)<0){
-		perror("ddt");
+		perror("ddt:connect");
 		exit(0);
 	}
 

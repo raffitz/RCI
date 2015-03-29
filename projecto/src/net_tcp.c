@@ -9,6 +9,7 @@ protocolo TCP.
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <string.h>
 #include "common.h"
 #include "net_common.h"
 #include "net_tcp.h"
@@ -116,12 +117,37 @@ int read_message_tcp(char* dest,int destsize, int fd){
 	int nread;
 	int num_char = 0;
 	char readbyte;
+	
+	char counter = 0;
+	
+	fd_set to_fds;
+
+	struct timeval timeout;
+	
 	/* Lê um char de cada vez para verificar quando encontra o '\n': */
 	while(1){
 		
-		/* FALTA AQUI SELECT PARA TIMEOUT */
 		
-		nread=read(fd, &readbyte, 1);
+		
+
+	
+		for(counter=0;counter<5;counter++){
+			FD_ZERO(&to_fds);
+			FD_SET(fd,&to_fds);
+		
+			timeout.tv_sec = 3;
+			timeout.tv_usec = 0;
+	
+			if(select(fd+1,&to_fds,NULL,NULL,&timeout)<1) continue;
+	
+			if(FD_ISSET(fd,&to_fds)){
+				nread=read(fd, &readbyte, 1);
+				break;
+			}
+		/*printf("Timeout elapsed. No contact from server.\n");*/
+			nread = -1;
+		}
+		
 		if(nread==-1){
 			printf("Erro ao ler do file descriptor\n");
 			return -1;
@@ -138,5 +164,6 @@ int read_message_tcp(char* dest,int destsize, int fd){
 			break;
 		}
 	}
+	if (strlen(dest)<=0) return -1;
 	return 0;
 }

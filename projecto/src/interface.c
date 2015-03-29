@@ -78,6 +78,14 @@ int interface(struct transversal_data *transversal_data){
 	char str[256];
 	char message_to_send[256];
 	
+	
+	char counter;
+	
+	fd_set to_fds;
+	
+	struct timeval timeout;
+	
+	
 	connect_fd *aux;
 
 	int anel_id, no_id;
@@ -114,6 +122,26 @@ int interface(struct transversal_data *transversal_data){
 
 	switch(code){
 		case 1: /* join com IPs */
+			
+			if(sscanf(comands[1], "%d", &anel_id)==1 &&
+			sscanf(comands[2], "%d", &no_id)==1){
+				if(no_id>=0 && no_id<64){
+				//faz join
+					join_spec_ring(comands[1],comands[2],
+						comands[3],comands[4],
+						comands[5],transversal_data);
+				}else{
+					printf("Identificador do nó fora do"
+					" alcance. Deve estar entre 0 e 63.\n");
+				}
+			}else{
+				printf("Comando mal formatado."
+					" Deve ser da forma:\n");
+				print_join_s();
+				print_join_l();
+			}
+			break;
+			
 			break;
 		case 2: /* join só com número */
 			if(sscanf(comands[1], "%d", &anel_id)==1 &&
@@ -173,22 +201,46 @@ int interface(struct transversal_data *transversal_data){
 				printf("Não há anel do qual sair.\n");
 			}else if(transversal_data->serv_arranq &&
 			transversal_data->peer_succ.socket==-1){
-				sprintf(message_to_send, "UNR %d",
-					transversal_data->ring);
+			
+				
+				for(counter=0;counter<5;counter++){
+					FD_ZERO(&to_fds);
+					FD_SET((*transversal_data).u,&to_fds);
+		
+					timeout.tv_sec = 3;
+					timeout.tv_usec = 0;
+					
+					sprintf(message_to_send, "UNR %d",
+						transversal_data->ring);
+					
+					sendto((*transversal_data).u,
+						message_to_send,
+						strlen(message_to_send),0,
+						(*transversal_data).
+							startup_data.destination
+						,(*transversal_data).
+							startup_data.dest_size);
+	
+					if(select((*transversal_data).u+1,
+					&to_fds,NULL,NULL,&timeout)<1) continue;
+	
+					if(FD_ISSET((*transversal_data).u,&to_fds)){
+						message_to_send[recvfrom(
+							(*transversal_data).u,
+							message_to_send,256,0,
+							NULL,NULL)] ='\0';
+#ifdef RCIDEBUG1
+						printf("RCIDEBUG1: SA responds:"
+						" <%s>",message_to_send);
+#endif
+						break;
+					}
+					printf("Timeout elapsed."
+						" No contact from server.\n");
+				}
 				
 				transversal_data->ring = -1;
 				
-				sendto((*transversal_data).u,message_to_send,
-					strlen(message_to_send),0,
-					(*transversal_data).startup_data.
-						destination,
-					(*transversal_data).startup_data.
-						dest_size);
-				message_to_send[recvfrom((*transversal_data).u,
-					message_to_send,256,0,NULL,NULL)] ='\0';
-#ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>",message_to_send);
-#endif
 				if(transversal_data->peer_pred.socket!=-1){
 					sprintf(message_to_send,"CON %d %s %s\n"
 						,transversal_data->peer_pred.id,
@@ -215,22 +267,40 @@ int interface(struct transversal_data *transversal_data){
 				transversal_data->peer_succ.socket = -1;
 				
 			}else if(transversal_data->serv_arranq){
-			
-				sprintf(message_to_send, "REG %d %d %s %s",
-					transversal_data->ring,
-					transversal_data->peer_succ.id,
-					transversal_data->peer_succ.node,
-					transversal_data->peer_succ.service);
-				sendto((*transversal_data).u,message_to_send,strlen(message_to_send),
-					0,(*transversal_data).startup_data.
+				
+				for(counter=0;counter<5;counter++){
+					FD_ZERO(&to_fds);
+					FD_SET((*transversal_data).u,&to_fds);
+		
+					timeout.tv_sec = 3;
+					timeout.tv_usec = 0;
+					
+					sprintf(message_to_send, "REG %d %d %s %s",
+						transversal_data->ring,
+						transversal_data->peer_succ.id,
+						transversal_data->peer_succ.node,
+						transversal_data->peer_succ.service);
+					
+					sendto((*transversal_data).u,message_to_send,
+					strlen(message_to_send),0,
+					(*transversal_data).startup_data.
 						destination,
 					(*transversal_data).startup_data.
 						dest_size);
-				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
-					NULL);
+	
+					if(select((*transversal_data).u+1,&to_fds,NULL,NULL,&timeout)<1) continue;
+	
+					if(FD_ISSET((*transversal_data).u,&to_fds)){
+						message_to_send[recvfrom((*transversal_data).u,
+							message_to_send,256,0,NULL,NULL)] ='\0';
 #ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>\n",message_to_send);
+						printf("RCIDEBUG1: SA responds: <%s>",message_to_send);
 #endif
+						break;
+					}
+					printf("Timeout elapsed. No contact from server.\n");
+				}
+				
 				sprintf(message_to_send, "BOOT\n");
 				dprintf(transversal_data->peer_succ.socket,"%s",
 					message_to_send);
