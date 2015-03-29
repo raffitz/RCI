@@ -92,7 +92,6 @@ void* parse_options(int* argc, char*** argv,
 	/* Caso contrário, é determinada a estrutura de destino: */
 	getudpdest(hostname,port,&(*transversal_data).startup_data);
 	
-	/* Aproveita a socket UDP para determinar o endereço externo: */
 	
 	
 	return NULL;

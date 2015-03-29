@@ -11,7 +11,7 @@ a interface com o utilizador.
 #include "common.h"
 #include "ring.h"
 #include "net_common.h"
-#include "message_handler.h"
+#include "fd_list.h"
 
 /** Função de impressão de formato do comando <join> (curto). */
 void print_join_s(){
@@ -77,6 +77,8 @@ int interface(struct transversal_data *transversal_data){
 	char comands[6][256];
 	char str[256];
 	char message_to_send[256];
+	
+	connect_fd *aux;
 
 	int anel_id, no_id;
 	int no_proc_id;
@@ -140,9 +142,14 @@ int interface(struct transversal_data *transversal_data){
 					}
 					else if(verifica_se_responsavel(comands[1], transversal_data->id, transversal_data->peer_pred.id)){
 						//se for ele responsavel entao responde logo ao utilizador
-						printf("\n%d, %s, %s\n", transversal_data->id, transversal_data->ext_addr,
+						printf("%d, %s, %s\n", transversal_data->id, transversal_data->ext_addr,
 						transversal_data->startup_data.ringport);
 					}else{
+						aux=malloc(sizeof(connect_fd));
+						aux->id = comands[1][0];
+						aux->fd = 0;
+						aux->next = NULL;
+						transversal_data->primeiro = add_fd(aux,transversal_data->primeiro);
 						//faz search do no que se procura enviando QRY j i ao succi
 						sprintf(message_to_send, "QRY %d %s\n",transversal_data->id, comands[1]);
 						write_message(message_to_send, transversal_data->peer_succ.socket);
@@ -159,83 +166,56 @@ int interface(struct transversal_data *transversal_data){
 			break;
 		case 4: /* Exit */
 			/* Sai do anel: */
-			if(transversal_data->ring == -1){
-				printf("Não há anel do qual sair.\n");
-			}else if(transversal_data->peer_succ.socket==-1 &&
-			transversal_data->peer_pred.socket==-1){
-				transversal_data->ring = -1;
-				sprintf(message_to_send, "UNR %d", transversal_data->ring);
-				sendto((*transversal_data).u,message_to_send, strlen(message_to_send),
-					0,(*transversal_data).startup_data.
-						destination,
-					(*transversal_data).startup_data.
-						dest_size);
-				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
-					NULL);
-	#ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>",message_to_send);
-	#endif
-			}else if(transversal_data->serv_arranq){
-				transversal_data->ring = -1;
-				sprintf(message_to_send, "REG %d %d %s %s",
-					transversal_data->ring,
-					transversal_data->peer_succ.id,
-					transversal_data->peer_succ.node,
-					transversal_data->peer_succ.service);
-				sendto((*transversal_data).u,message_to_send,strlen(message_to_send),
-					0,(*transversal_data).startup_data.
-						destination,
-					(*transversal_data).startup_data.
-						dest_size);
-				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
-					NULL);
-	#ifdef RCIDEBUG1
-				printf("RCIDEBUG1: SA responds: <%s>\n",message_to_send);
-	#endif
-				sprintf(message_to_send, "BOOT");
-				dprintf(transversal_data->peer_succ.socket,"%s",
-					message_to_send);
-				close(transversal_data->peer_succ.socket);
-				close(transversal_data->peer_pred.socket);
-
-				transversal_data->peer_pred.id = -1;
-				transversal_data->peer_pred.node[0] = 0;
-				transversal_data->peer_pred.service[0] = 0;
-				transversal_data->peer_pred.socket = -1;
-
-				transversal_data->peer_succ.id = -1;
-				transversal_data->peer_succ.node[0] = 0;
-				transversal_data->peer_succ.service[0] = 0;
-				transversal_data->peer_succ.socket = -1;
-
-			}else{
-				/* Algo de mágico se passa (unspecified
-				behaviour) */
-				print_error();
-			}
-
-			return (1); /* Faz exit */
 
 		case 5: /* Leave */
 			/* Sai do anel: */
 			if(transversal_data->ring == -1){
 				printf("Não há anel do qual sair.\n");
-			}else if(transversal_data->peer_succ.socket==-1 &&
-			transversal_data->peer_pred.socket==-1){
+			}else if(transversal_data->serv_arranq &&
+			transversal_data->peer_succ.socket==-1){
+				sprintf(message_to_send, "UNR %d",
+					transversal_data->ring);
+				
 				transversal_data->ring = -1;
-				sprintf(message_to_send, "UNR %d", transversal_data->ring);
-				sendto((*transversal_data).u,message_to_send, strlen(message_to_send),
-					0,(*transversal_data).startup_data.
+				
+				sendto((*transversal_data).u,message_to_send,
+					strlen(message_to_send),0,
+					(*transversal_data).startup_data.
 						destination,
 					(*transversal_data).startup_data.
 						dest_size);
-				recvfrom((*transversal_data).u,message_to_send,256,0,NULL,
-					NULL);
+				message_to_send[recvfrom((*transversal_data).u,
+					message_to_send,256,0,NULL,NULL)] ='\0';
 #ifdef RCIDEBUG1
 				printf("RCIDEBUG1: SA responds: <%s>",message_to_send);
 #endif
+				if(transversal_data->peer_pred.socket!=-1){
+					sprintf(message_to_send,"CON %d %s %s\n"
+						,transversal_data->peer_pred.id,
+						transversal_data->
+							peer_pred.node,
+						transversal_data->
+							peer_pred.service);
+					write_message(message_to_send,
+						transversal_data->
+							peer_pred.socket);
+					close(transversal_data->
+						peer_pred.socket);
+					
+				}
+				
+				transversal_data->peer_pred.id = -1;
+				transversal_data->peer_pred.node[0] = 0;
+				transversal_data->peer_pred.service[0] = 0;
+				transversal_data->peer_pred.socket = -1;
+
+				transversal_data->peer_succ.id = -1;
+				transversal_data->peer_succ.node[0] = 0;
+				transversal_data->peer_succ.service[0] = 0;
+				transversal_data->peer_succ.socket = -1;
+				
 			}else if(transversal_data->serv_arranq){
-				transversal_data->ring = -1;
+			
 				sprintf(message_to_send, "REG %d %d %s %s",
 					transversal_data->ring,
 					transversal_data->peer_succ.id,
@@ -251,12 +231,42 @@ int interface(struct transversal_data *transversal_data){
 #ifdef RCIDEBUG1
 				printf("RCIDEBUG1: SA responds: <%s>\n",message_to_send);
 #endif
-				sprintf(message_to_send, "BOOT");
+				sprintf(message_to_send, "BOOT\n");
 				dprintf(transversal_data->peer_succ.socket,"%s",
 					message_to_send);
+			
 				close(transversal_data->peer_succ.socket);
+				sprintf(message_to_send,"CON %d %s %s\n"
+						,transversal_data->peer_succ.id,
+						transversal_data->
+							peer_succ.node,
+						transversal_data->
+							peer_succ.service);
+				write_message(message_to_send,transversal_data->
+					peer_pred.socket);
 				close(transversal_data->peer_pred.socket);
+				
+				transversal_data->peer_pred.id = -1;
+				transversal_data->peer_pred.node[0] = 0;
+				transversal_data->peer_pred.service[0] = 0;
+				transversal_data->peer_pred.socket = -1;
 
+				transversal_data->peer_succ.id = -1;
+				transversal_data->peer_succ.node[0] = 0;
+				transversal_data->peer_succ.service[0] = 0;
+				transversal_data->peer_succ.socket = -1;
+			}else{
+				close(transversal_data->peer_succ.socket);
+				sprintf(message_to_send,"CON %d %s %s\n"
+						,transversal_data->peer_succ.id,
+						transversal_data->
+							peer_succ.node,
+						transversal_data->
+							peer_succ.service);
+				write_message(message_to_send,transversal_data->
+					peer_pred.socket);
+				close(transversal_data->peer_pred.socket);
+				
 				transversal_data->peer_pred.id = -1;
 				transversal_data->peer_pred.node[0] = 0;
 				transversal_data->peer_pred.service[0] = 0;
@@ -267,15 +277,12 @@ int interface(struct transversal_data *transversal_data){
 				transversal_data->peer_succ.service[0] = 0;
 				transversal_data->peer_succ.socket = -1;
 
-			}else{
-				/* Algo de mágico se passa (unspecified
-				behaviour) */
-				print_error(); /* /!\ */
-			}
+			}			
+			if(code == 4) return 1;
 
 			break;
 		case 6: /* Show */
-			printf("Anel: %d / ID: %d / Predecessor: %d / Antecessor: %d\n", transversal_data->ring, transversal_data->id, transversal_data->peer_succ.id, transversal_data->peer_pred.id);
+			printf("Anel: %d / ID: %d / Sucessor: %d / Predecessor: %d\n", transversal_data->ring, transversal_data->id, transversal_data->peer_succ.id, transversal_data->peer_pred.id);
 			break;
 		case 7: /* Help */
 			/* Mostra de novo os comandos disponíveis: */

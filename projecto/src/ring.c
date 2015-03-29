@@ -11,6 +11,36 @@
 
 #define RCI_MSGSIZE 256
 
+
+#define RCI_MAXNR 64
+
+/** Função de cálculo da distância entre dois nós. */
+int dist(int ele, int eu){
+	if (eu>=ele){
+		return (eu-ele);
+	}else{
+		return(RCI_MAXNR+eu-ele);
+	}
+
+}
+
+/** Função de verificação da responsabilidade de um nó. 1-> responsavel / 0->nao responsavel*/
+int verifica_se_responsavel(char * c, int eu_id, int pred_id){
+
+	int id;
+	if(pred_id>=0){
+		sscanf(c, "%d", &id);
+		if(dist(id, eu_id)<dist(id, pred_id)){
+			return 1;
+		}else{
+			return 0;
+		}
+	}else{
+		return 1;
+	}
+}
+
+
 void join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 {
 	char buffer[RCI_MSGSIZE];
@@ -44,7 +74,7 @@ void join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 	if((ml == 1) && strcmp(message[0], "EMPTY")==0){
 	//Regista-se no servidor de arranque e se receber OK assume-se como no de arranque do novo anel
 		sprintf(buffer, "REG %s %s %s %s", ring, num, transversal_data->ext_addr, transversal_data->startup_data.ringport);
-		sendto((*transversal_data).u, buffer,strlen(buffer)-1,0, (*transversal_data).startup_data.destination,
+		sendto((*transversal_data).u, buffer,strlen(buffer),0, (*transversal_data).startup_data.destination,
 			(*transversal_data).startup_data.dest_size);
 		buffer[recvfrom((*transversal_data).u,buffer,256,0,NULL,NULL)] = '\0';
 		if(strcmp(buffer, "OK")==0){
@@ -61,7 +91,12 @@ void join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 			printf("Esse id já existe no anel. Escolha outro.\n");
 			return;
 		}
-		sprintf(buffer,"ID %s",num);
+		sprintf(buffer,"ID %s\n",num);
+
+#ifdef RCIDEBUG1
+		printf("Attempting to send <%s:%s>:%s\n",message[3],message[4],
+			buffer);
+#endif
 		
 		fd = connect_tcp(message[3],message[4]);
 		
@@ -84,8 +119,13 @@ void join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 			return;
 		}
 		
-		sprintf(buffer,"NEW %s %s %s",num, transversal_data->ext_addr,
+		sprintf(buffer,"NEW %s %s %s\n",num, transversal_data->ext_addr,
 			transversal_data->startup_data.ringport);
+			
+#ifdef RCIDEBUG1
+		printf("Attempting to send <%s:%s>:%s\n",message[2],message[3],
+			buffer);
+#endif
 		
 		fd = connect_tcp(message[2],message[3]);
 		
@@ -95,6 +135,7 @@ void join_ring(char* ring, char* num, struct transversal_data *transversal_data)
 			message[3],fd);
 			
 		sscanf(num,"%d",&(transversal_data->id));
+		sscanf(ring,"%d",&(transversal_data->ring));
 		
 	}else{
 #ifdef RCIDEBUG1

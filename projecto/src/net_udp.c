@@ -59,7 +59,7 @@ void createsocket_udp(struct transversal_data *transversal_data){
 	(*transversal_data).u = i;
 
 
-#ifdef RCIDEBUG1
+#ifdef RCIDEBUG2
 
 	char buf[256];
 

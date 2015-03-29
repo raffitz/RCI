@@ -25,7 +25,7 @@ void createserver_tcp(struct transversal_data *transversal_data){
 
 	int i;
 	int family;
-	uint32_t port;
+	uint16_t port;
 
 	struct sockaddr* address;
 
@@ -45,20 +45,20 @@ void createserver_tcp(struct transversal_data *transversal_data){
 	}
 
 
-	sscanf((*transversal_data).startup_data.ringport,"%u",&port);
+	sscanf((*transversal_data).startup_data.ringport,"%hu",&port);
 
 	/* Especificação do endereço para o bind() : */
 	if(family == AF_INET){
 		size = sizeof(struct sockaddr_in);
 		address = (struct sockaddr*) &address4;
 		address4.sin_family = AF_INET;
-		address4.sin_port = htonl(port);
+		address4.sin_port = htons(port);
 		address4.sin_addr.s_addr = INADDR_ANY;
 	}else{
 		size = sizeof(struct sockaddr_in6);
 		address = (struct sockaddr*) &address6;
 		address6.sin6_family = AF_INET6;
-		address6.sin6_port = htonl(port);
+		address6.sin6_port = htons(port);
 		address6.sin6_flowinfo = 0;
 		address6.sin6_scope_id = 0;
 		address6.sin6_addr = in6addr_any;

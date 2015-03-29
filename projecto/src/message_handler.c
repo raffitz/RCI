@@ -7,22 +7,13 @@ funções de tratamento de mensagens recebidas.
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "common.h"
 #include <unistd.h>
+#include "common.h"
+#include "ring.h"
 #include "net_tcp.h"
 #include "net_common.h"
 
-#define RCI_MAXNR 64
 
-/** Função de cálculo da distância entre dois nós. */
-int dist(int ele, int eu){
-	if (eu>=ele){
-		return (eu-ele);
-	}else{
-		return(RCI_MAXNR+eu-ele);
-	}
-
-}
 
 /** Função que preenche a estrutura de informação do par predecessor. */
 void preenche_pred_info(struct transversal_data * transversal_data, char* id,
@@ -48,27 +39,13 @@ void preenche_succ_info(struct transversal_data * transversal_data, char* id,
 	return;
 }
 
-/** Função de verificação da responsabilidade de um nó. 1-> responsavel / 0->nao responsavel*/
-int verifica_se_responsavel(char * c, int eu_id, int pred_id){
 
-	int id;
-	if(pred_id>=0){
-		sscanf(c, "%d", &id);
-		if(dist(id, eu_id)<dist(id, pred_id)){
-			return 1;
-		}else{
-			return 0;
-		}
-	}else{
-		return 1;
-	}
-}
 
 /** Verifica se a mensagem recebida de um novo nó é válida e identifica-a. A
 identificação é feita através do valor devolvido pela função, que pode ser um dos seguintes:
 	0-erro / 1-ID / 2-NEW
 */
-int check_new_message(char** message, int num_words){
+int check_new_message(char message[6][256], int num_words){
 	int new_pred;
 	int procu_id;
 	
@@ -139,6 +116,8 @@ int new_fd){
 	int num_words, option;
 	
 	connect_fd *aux;
+	
+	int fd_aux;
 
 	num_words = sscanf(buffer, "%s %s %s %s %s %s", message[0],message[1],
 		message[2],message[3],message[4],message[5]);
@@ -148,7 +127,7 @@ int new_fd){
 		message[num_words][strlen(message[num_words])-1] = '\0';
 	}
 	
-	option = check_new_message((char**)message, num_words);
+	option = check_new_message(message, num_words);
 
 	switch (option){
 		case 1:/* ID */
@@ -176,7 +155,9 @@ int new_fd){
 						transversal_data->
 							peer_succ.socket);
 				aux = malloc(sizeof(connect_fd));
+				(*aux).id = message[1][0];
 				(*aux).fd = new_fd;
+				(*aux).next = NULL;
 				transversal_data->primeiro = add_fd(aux,
 					transversal_data->primeiro);
 			}
@@ -187,6 +168,24 @@ int new_fd){
 			if(transversal_data->peer_pred.socket==-1){
 				preenche_pred_info(transversal_data,message[1],
 					message[2], message[3], new_fd);
+				
+				if(transversal_data->peer_succ.socket==-1){
+					sprintf(response,"NEW %d %s %s\n",
+						transversal_data->id,
+						transversal_data->ext_addr,
+						transversal_data->
+							startup_data.ringport);
+					
+					fd_aux = connect_tcp(message[2],
+						message[3]);
+					
+					write_message(response,fd_aux);
+					
+					preenche_succ_info(transversal_data,
+						message[1],message[2],
+						message[3], fd_aux);
+				
+				}
 				
 			}else{
 				sprintf(response, "CON %s %s %s\n",
@@ -210,7 +209,7 @@ identificação é feita através do valor devolvido pela função, que pode ser
 dos seguintes:
 	0-erro / 1-QRY / 2-BOOT
 */
-int check_pred_message(char** message, int num_words){
+int check_pred_message(char message[6][256], int num_words){
 	int ini_id,procu_id;
 	
 	/* Deve ser procura QRY: */
@@ -275,7 +274,7 @@ struct transversal_data * transversal_data, int new_fd){
 	if(message[num_words][strlen(message[num_words])-1] == '\n'){
 		message[num_words][strlen(message[num_words])-1] = '\0';
 	}
-	option = check_pred_message((char**)message, num_words);
+	option = check_pred_message(message, num_words);
 
 	switch (option){
 		case 1:/* QRY */
@@ -319,7 +318,7 @@ identificação é feita através do valor devolvido pela função, que pode ser
 dos seguintes:
 	0-erro / 1-RSP / 2-CON
 */
-int check_succ_message(char** message, int num_words){
+int check_succ_message(char message[6][256], int num_words){
 	int ini_id, procu_id, resp_id;
 	int new_succ;
 	
@@ -407,7 +406,7 @@ int new_fd){
 	if(message[num_words][strlen(message[num_words])-1] == '\n'){
 		message[num_words][strlen(message[num_words])-1] = '\0';
 	}
-	option = check_succ_message((char**)message, num_words);
+	option = check_succ_message(message, num_words);
 
 	switch (option){
 		case 1:/* RSP */
@@ -428,6 +427,7 @@ int new_fd){
 					sprintf(response, "SUCC %s %s %s\n",
 					message[3], message[4], message[5]);
 					write_message(response, fd_aux);
+					close(fd_aux);
 				}
 				transversal_data->primeiro=remove_fd(aux,
 					transversal_data->primeiro);

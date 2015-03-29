@@ -53,6 +53,7 @@ int main(int argc, char**argv){
 	/*Cria a interface do utilizador*/
 	print_ui();
 	printf(">");
+	fflush(stdout);
 
 
 	while(1){
@@ -63,18 +64,27 @@ int main(int argc, char**argv){
 		FD_SET(STDIN, &fdset);
 		max_fd=STDIN;
 		if(transversal_data.t >= 0){
+#ifdef RCIDEBUG2
+			printf("Inserting Accept socket into select\n");
+#endif
 			FD_SET(transversal_data.t, &fdset);
 			if(transversal_data.t>max_fd) max_fd=transversal_data.t;
 		}
 		if(transversal_data.peer_pred.socket >= 0){
+#ifdef RCIDEBUG2
+			printf("Inserting Pred socket into select\n");
+#endif
 			FD_SET(transversal_data.peer_pred.socket, &fdset);
 			if(transversal_data.peer_pred.socket>max_fd)
 				max_fd=transversal_data.peer_pred.socket;
 		}
 		if(transversal_data.peer_succ.socket >= 0){
+#ifdef RCIDEBUG2
+			printf("Inserting Succ socket into select\n");
+#endif
 			FD_SET(transversal_data.peer_succ.socket, &fdset);
 			if(transversal_data.peer_succ.socket>max_fd)
-				max_fd=transversal_data.peer_pred.socket;
+				max_fd=transversal_data.peer_succ.socket;
 		}
 
 		
@@ -122,6 +132,7 @@ int main(int argc, char**argv){
 				break;
 			}else{
 				printf(">");
+				fflush(stdout);
 			}
 		}
 	}
