@@ -77,15 +77,15 @@ int interface(struct transversal_data *transversal_data){
 	char comands[6][256];
 	char str[256];
 	char message_to_send[256];
-	
-	
+
+
 	char counter;
-	
+
 	fd_set to_fds;
-	
+
 	struct timeval timeout;
-	
-	
+
+
 	connect_fd *aux;
 
 	int anel_id, no_id;
@@ -122,7 +122,7 @@ int interface(struct transversal_data *transversal_data){
 
 	switch(code){
 		case 1: /* join com IPs */
-			
+
 			if(sscanf(comands[1], "%d", &anel_id)==1 &&
 			sscanf(comands[2], "%d", &no_id)==1){
 				if(no_id>=0 && no_id<64){
@@ -141,8 +141,7 @@ int interface(struct transversal_data *transversal_data){
 				print_join_l();
 			}
 			break;
-			
-			break;
+
 		case 2: /* join só com número */
 			if(sscanf(comands[1], "%d", &anel_id)==1 &&
 			sscanf(comands[2], "%d", &no_id)==1){
@@ -200,21 +199,21 @@ int interface(struct transversal_data *transversal_data){
 			if(transversal_data->ring == -1){
 				printf("Não há anel do qual sair.\n");
 			}else if(transversal_data->serv_arranq &&
-			(transversal_data->peer_succ.socket==-1 || 
+			(transversal_data->peer_succ.socket==-1 ||
 			transversal_data->peer_succ.id ==
 			transversal_data->id)){
-			
-				
+
+
 				for(counter=0;counter<5;counter++){
 					FD_ZERO(&to_fds);
 					FD_SET((*transversal_data).u,&to_fds);
-		
+
 					timeout.tv_sec = 3;
 					timeout.tv_usec = 0;
-					
+
 					sprintf(message_to_send, "UNR %d",
 						transversal_data->ring);
-					
+
 					sendto((*transversal_data).u,
 						message_to_send,
 						strlen(message_to_send),0,
@@ -222,10 +221,10 @@ int interface(struct transversal_data *transversal_data){
 							startup_data.destination
 						,(*transversal_data).
 							startup_data.dest_size);
-	
+
 					if(select((*transversal_data).u+1,
 					&to_fds,NULL,NULL,&timeout)<1) continue;
-	
+
 					if(FD_ISSET((*transversal_data).u,&to_fds)){
 						message_to_send[recvfrom(
 							(*transversal_data).u,
@@ -240,9 +239,9 @@ int interface(struct transversal_data *transversal_data){
 					printf("Timeout elapsed."
 						" No contact from server.\n");
 				}
-				
+
 				transversal_data->ring = -1;
-				
+
 				if(transversal_data->peer_pred.socket!=-1 &&
 				transversal_data->peer_pred.id !=
 				transversal_data->id){
@@ -257,9 +256,9 @@ int interface(struct transversal_data *transversal_data){
 							peer_pred.socket);
 					close(transversal_data->
 						peer_pred.socket);
-					
+
 				}
-				
+
 				transversal_data->peer_pred.id = -1;
 				transversal_data->peer_pred.node[0] = 0;
 				transversal_data->peer_pred.service[0] = 0;
@@ -269,31 +268,31 @@ int interface(struct transversal_data *transversal_data){
 				transversal_data->peer_succ.node[0] = 0;
 				transversal_data->peer_succ.service[0] = 0;
 				transversal_data->peer_succ.socket = -1;
-				
+
 			}else if(transversal_data->serv_arranq){
-				
+
 				for(counter=0;counter<5;counter++){
 					FD_ZERO(&to_fds);
 					FD_SET((*transversal_data).u,&to_fds);
-		
+
 					timeout.tv_sec = 3;
 					timeout.tv_usec = 0;
-					
+
 					sprintf(message_to_send, "REG %d %d %s %s",
 						transversal_data->ring,
 						transversal_data->peer_succ.id,
 						transversal_data->peer_succ.node,
 						transversal_data->peer_succ.service);
-					
+
 					sendto((*transversal_data).u,message_to_send,
 					strlen(message_to_send),0,
 					(*transversal_data).startup_data.
 						destination,
 					(*transversal_data).startup_data.
 						dest_size);
-	
+
 					if(select((*transversal_data).u+1,&to_fds,NULL,NULL,&timeout)<1) continue;
-	
+
 					if(FD_ISSET((*transversal_data).u,&to_fds)){
 						message_to_send[recvfrom((*transversal_data).u,
 							message_to_send,256,0,NULL,NULL)] ='\0';
@@ -304,11 +303,11 @@ int interface(struct transversal_data *transversal_data){
 					}
 					printf("Timeout elapsed. No contact from server.\n");
 				}
-				
+
 				sprintf(message_to_send, "BOOT\n");
 				dprintf(transversal_data->peer_succ.socket,"%s",
 					message_to_send);
-			
+
 				close(transversal_data->peer_succ.socket);
 				sprintf(message_to_send,"CON %d %s %s\n"
 						,transversal_data->peer_succ.id,
@@ -319,7 +318,7 @@ int interface(struct transversal_data *transversal_data){
 				write_message(message_to_send,transversal_data->
 					peer_pred.socket);
 				close(transversal_data->peer_pred.socket);
-				
+
 				transversal_data->peer_pred.id = -1;
 				transversal_data->peer_pred.node[0] = 0;
 				transversal_data->peer_pred.service[0] = 0;
@@ -340,7 +339,7 @@ int interface(struct transversal_data *transversal_data){
 				write_message(message_to_send,transversal_data->
 					peer_pred.socket);
 				close(transversal_data->peer_pred.socket);
-				
+
 				transversal_data->peer_pred.id = -1;
 				transversal_data->peer_pred.node[0] = 0;
 				transversal_data->peer_pred.service[0] = 0;
@@ -350,8 +349,9 @@ int interface(struct transversal_data *transversal_data){
 				transversal_data->peer_succ.node[0] = 0;
 				transversal_data->peer_succ.service[0] = 0;
 				transversal_data->peer_succ.socket = -1;
+				transversal_data->serv_arranq = 0;
 
-			}			
+			}
 			if(code == 4) return 1;
 
 			break;
